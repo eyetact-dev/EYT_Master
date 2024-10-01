@@ -1,0 +1,1255 @@
+<?php
+
+{{namespace}}
+use {{modelPath}};
+use {{requestPath}};
+use App\Models\UCGroup;
+use App\Models\Attribute;
+use Yajra\DataTables\Facades\DataTables;
+use App\Services\GeneratorService;
+use App\Models\Module;
+use App\Generators\GeneratorUtils;
+use App\Models\User;
+use App\Models\Limit;
+use Illuminate\Http\Request;
+use App\Models\Multi;
+use DB;
+
+
+
+
+
+class {{modelNameSingularPascalCase}}Controller extends Controller
+{
+    use {{modelNameSingularPascalCase}}Trait;
+    private $generatorService;
+
+    public function __construct()
+    {
+        $this->generatorService = new GeneratorService();
+
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return
+     */
+    public function index()
+    {
+
+
+
+        if (request()->ajax()) {
+            ${{modelNamePluralCamelCase}} = {{query}};
+
+               if (auth()->user()->access_table == "Group") {
+                $group_ids = auth()->user()->groups()->pluck('group_id');
+
+                $userids= UCGroup::whereIn('group_id', $group_ids)
+                ->pluck('user_id');
+
+
+
+                ${{modelNamePluralCamelCase}} = {{modelNameSingularPascalCase}}::whereIn('user_id', $userids)->orWhere('customer_id',auth()->user()->id)->orWhere('assign_id',auth()->user()->id)->get();
+            }
+
+            if (auth()->user()->access_table == "Individual") {
+
+                     $empl_ids = User::where('user_id',auth()->user()->id)->pluck('id');
+
+
+
+                ${{modelNamePluralCamelCase}} = {{modelNameSingularPascalCase}}::where('user_id', auth()->user()->id)->orWhereIn('user_id', $empl_ids)->orWhere('customer_id',auth()->user()->id)->orWhere('assign_id',auth()->user()->id)->get();
+
+            }
+
+            return DataTables::of(${{modelNamePluralCamelCase}})
+                {{addColumns}}->addColumn('action', 'admin.{{viewPath}}{{modelNamePluralKebabCase}}.include.action')
+                ->toJson();
+        }
+
+        return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.index');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return
+     */
+    public function create()
+    {
+
+        return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.create');
+    }
+
+
+    public function createLess()
+    {
+
+        return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.create-less');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return
+     */
+    public function store(Store{{modelNameSingularPascalCase}}Request $request)
+    {
+          $module =  Module::where('code', GeneratorUtils::singularSnakeCase('{{modelNameSingularPascalCase}}'))->orWhere('code', GeneratorUtils::pluralSnakeCase('{{modelNameSingularPascalCase}}'))->first();
+            $module_id = (int)$module?->id;
+
+
+
+        // dd(auth()->user());
+        if (auth()->user()->id != 1) {
+
+            $sub = auth()->user()?->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+            if ((!(auth()->user()->hasRole('vendor')) || !(auth()->user()->hasRole('admin')) || !(auth()->user()->hasRole('public_vendor'))) && auth()->user()->user_id != 1) {
+                $customer = User::find(auth()->user()->user_id);
+                $sub = $customer->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+            }
+            if($module->user_id != 1){
+
+            $limit = Limit::where('module_id', $module_id)
+                ->where('subscription_id', $sub?->id)
+                ->first();
+
+
+            if (!$limit) {
+                $do = true;
+
+                if ((!(auth()->user()->hasRole('vendor')) || !(auth()->user()->hasRole('admin')) || !(auth()->user()->hasRole('public_vendor'))) && auth()->user()->user_id != 1) {
+                    $customer = User::find(auth()->user()->user_id);
+                    $sub = $customer->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+                } elseif ((!(auth()->user()->hasRole('vendor')) && !(auth()->user()->hasRole('admin')) && !(auth()->user()->hasRole('public_vendor'))) && auth()->user()->user_id == 1) {
+                    $do = false;
+                }
+
+                // dd($do);
+                if ($do) {
+
+                    $limit = new Limit();
+                    $limit->plan_id = $sub->plan_id;
+                    $limit->subscription_id = $sub->id;
+                    $limit->data_limit = 0;
+                    $limit->module_id = $module_id;
+                    $limit->save();
+
+
+                }
+
+            }
+            if($limit){
+                $limit->data_limit = (int)$limit->data_limit + 1;
+                $limit->save();
+            }
+            }
+        }
+
+
+        $insert = {{insertDataAction}}
+
+        if($module->is_system)
+        {
+
+  if (auth()->user()->hasRole('super')) {
+
+
+            $insert->global = 1;
+            $insert->status = "active";
+            $insert->save();
+
+        }
+
+        if (auth()->user()->hasAnyRole(['vendor', 'admin','public_vendor'])) {
+            if ($request->global == 0) {
+
+
+                $insert->status = "inactive";
+                $insert->save();
+
+
+            }
+
+            if ($request->global == 1) {
+
+
+                $insert->status = "pending";
+                $insert->save();
+
+
+            }
+        }
+
+
+        }
+
+
+
+             $attributes=Attribute::where('module',$module_id)->where('multiple',1)->get();
+            foreach($attributes as $attr)
+            {
+
+
+            if ($request->has($attr->code)) {
+            foreach ($request->input($attr->code) as $mId) {
+
+                $model1=GeneratorUtils::singularSnakeCase(Module::find($attr->module)->name);
+
+                        $model2=GeneratorUtils::singularSnakeCase($attr->constrain);
+
+                        $table_name= $model1 . "_" . $model2;
+                        $id1=$model1 . "_id";
+                        $id2=$model2 . "_id";
+
+                $values = array($id1 => $insert->id,$id2 => $mId);
+                DB::table($table_name)->insert($values);
+
+            }
+        }
+
+            }
+
+
+
+    $attrs = Attribute::where('module',$module_id)->where('second_column','!=',NULL)->where('first_multi_column',NULL)->get();
+
+            foreach($attrs as $attr)
+            {
+
+
+
+                if($attr->operation == 'sum' )
+                {
+
+
+                    $fFieldNameParts = explode('_', $attr->first_column);
+                    $fLastPart = end($fFieldNameParts);
+
+                    $sFieldNameParts = explode('_', $attr->second_column);
+                    $sLastPart = end($sFieldNameParts);
+
+
+                    if($fLastPart == 'id' && $sLastPart != 'id' ){
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk = $insert->$fcolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                       $insert->$attr_code =        (float)$fkValue   +   (float)$insert->$scolumn ;
+                       $insert->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart == 'id' ){
+
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->second_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk = $insert->$scolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                       $insert->$attr_code =       (float)$fkValue   +  (float)$insert->$fcolumn ;
+                       $insert->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart != 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $insert->$attr_code =   $insert->$fcolumn +   $insert->$scolumn ;
+                        $insert->save();
+
+
+                    }
+
+                    if($fLastPart == 'id' && $sLastPart == 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr1 = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+                         $fkAttr2 = Attribute::where('code', $attr->second_column)
+                         ->where('module',$module_id)
+                          ->first();
+
+                          $valFk1 = $insert->$fcolumn;
+
+                          $valFk2 = $insert->$scolumn;
+
+                          $const1 = GeneratorUtils::setModelName((string)$fkAttr1->constrain, 'default');
+                          $const2 = GeneratorUtils::setModelName((string)$fkAttr2->constrain, 'default');
+
+                          $fkModel1 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const1);
+                          $fkModel2 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const2);
+
+                          $fkValue1 = $fkModel1::where('id', $valFk1)->first()->{str()->snake($fkAttr1->attribute)};
+                          $fkValue2 = $fkModel2::where('id', $valFk2)->first()->{str()->snake($fkAttr2->attribute)};
+
+
+
+
+
+                       $insert->$attr_code =  (float)$fkValue1   +   (float)$fkValue2   ;
+                       $insert->save();
+
+
+                    }
+
+
+
+
+
+
+                }
+
+                if($attr->operation == 'multiple' )
+                {
+
+
+
+                    $fFieldNameParts = explode('_', $attr->first_column);
+                    $fLastPart = end($fFieldNameParts);
+
+                    $sFieldNameParts = explode('_', $attr->second_column);
+                    $sLastPart = end($sFieldNameParts);
+
+
+                    if($fLastPart == 'id' && $sLastPart != 'id' ){
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk = $insert->$fcolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                       $insert->$attr_code =        (float)$fkValue   *   (float)$insert->$scolumn ;
+                       $insert->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart == 'id' ){
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->second_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk = $insert->$scolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                       $insert->$attr_code =       (float)$fkValue   * (float)$insert->$fcolumn ;
+                       $insert->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart != 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $insert->$attr_code =   $insert->$fcolumn *   $insert->$scolumn ;
+                        $insert->save();
+
+
+                    }
+
+                    if($fLastPart == 'id' && $sLastPart == 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr1 = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+                         $fkAttr2 = Attribute::where('code', $attr->second_column)
+                         ->where('module',$module_id)
+                          ->first();
+
+                          $valFk1 = $insert->$fcolumn;
+
+                          $valFk2 = $insert->$scolumn;
+
+                          $const1 = GeneratorUtils::setModelName((string)$fkAttr1->constrain, 'default');
+                          $const2 = GeneratorUtils::setModelName((string)$fkAttr2->constrain, 'default');
+
+                          $fkModel1 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const1);
+                          $fkModel2 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const2);
+
+                          $fkValue1 = $fkModel1::where('id', $valFk1)->first()->{str()->snake($fkAttr1->attribute)};
+                          $fkValue2 = $fkModel2::where('id', $valFk2)->first()->{str()->snake($fkAttr2->attribute)};
+
+
+
+
+
+                       $insert->$attr_code =  (float)$fkValue1   *   (float)$fkValue2   ;
+                       $insert->save();
+
+
+                    }
+
+
+
+
+                }
+
+
+            }
+
+
+
+
+    $mAttrs = Attribute::where('module',$module_id)->where('type','calc')->where('first_multi_column','!=',NULL)->get();
+
+
+            foreach($mAttrs as $attr)
+            {
+
+
+                 if ($attr->type_of_calc == 'two') {
+                $multiAttr = Multi::where('name','like',$attr->name)->where('calc_attr',$attr->id)->first();
+
+                $multiCode =$multiAttr->code;
+
+                $multi=Attribute::where('id',$multiAttr->attribute_id)->first()->code;
+
+                $item1= $attr->first_multi_column;
+                $item2= $attr->second_multi_column;
+
+
+                $ar = json_decode(str($insert->$multi)->snake(), true);
+
+                foreach ($ar as $key => $item) {
+                       if($attr->operation == 'sum' )
+                    {
+
+                    $item[$multiCode] = (string)($item[$item1] + $item[$item2]);
+                    }
+
+
+                    if($attr->operation == 'multiple' )
+                    {
+
+                    $item[$multiCode] = (string)($item[$item1] * $item[$item2]);
+                    }
+
+                    $ar[$key] = $item;
+                }
+
+
+                $insert->$multi = $ar;
+                $insert->save();
+
+            }
+
+
+
+                   if ($attr->type_of_calc == 'one') {
+
+                $multiAttr = Attribute::where('module',$module_id)->where('type','multi')->where('code','like',$attr->first_column)->first();
+
+                $multiCode = $multiAttr->code;
+
+
+                $item1 = $attr->first_multi_column;
+                $aggAttr = match ($attr->operation) {
+                    'sum', 'count' => 0,
+                    'multiple' => 1,
+                    'avg', 'min', 'max' => null,
+                    default => 0,
+                };
+
+                $ar = json_decode(str($insert->$multiCode)->snake(), true);
+
+                foreach ($ar as $key => $item) {
+                    switch ($attr->operation) {
+                        case 'sum':
+                            $aggAttr += $item[$item1];
+                            break;
+                        case 'multiple':
+                            $aggAttr *= $item[$item1];
+                            break;
+                        case 'count':
+                            $aggAttr += 1;
+                            break;
+                        case 'avg':
+                            $aggAttr = ($aggAttr ?? 0) + $item[$item1];
+                            break;
+                        case 'min':
+                            $aggAttr = is_null($aggAttr) ? $item[$item1] : min($aggAttr, $item[$item1]);
+                            break;
+                        case 'max':
+                            $aggAttr = is_null($aggAttr) ? $item[$item1] : max($aggAttr, $item[$item1]);
+                            break;
+                    }
+                }
+
+                if ($attr->operation == 'avg') {
+                    $aggAttr = $aggAttr / count($ar);
+                }
+
+                $insert->{$attr->code} = $aggAttr;
+
+                $insert->save();
+            }
+
+            }
+
+
+
+
+        $this->customStore($request,$insert);
+
+        if ($module->addable) {
+            $parent = Module::find($module->parent_id);
+
+
+            $modelName = "App\Models\Admin\\" . GeneratorUtils::setModelName($parent->code);
+
+            $data = new $modelName();
+            foreach ($parent->fields as $value) {
+
+                $attr = GeneratorUtils::singularSnakeCase($value->code);
+
+                $data->$attr = $request[$attr];
+            }
+            $data->save();
+
+            $insert->sub_id = $parent->id;
+            $insert->data_id = $data->id;
+            $insert->save();
+        }
+
+        if( !empty($request->module) ){
+
+            $module = Module::find($request->module);
+            $modelName = "App\Models\Admin\\".GeneratorUtils::setModelName($module->code);
+
+            $data = new $modelName();
+            foreach ($module->fields as $value) {
+
+                $attr = GeneratorUtils::singularSnakeCase($value->code);
+
+                $data->$attr = $request[$attr];
+            }
+            $data->save();
+
+             $insert->sub_id = $request->module;
+              $insert->data_id = $data->id;
+            $insert->save();
+
+        }
+
+        $parent_id = (int)Module::where('code','LIKE', '%' . '{{modelNameSingularPascalCase}}' . '%' )->first()?->parent_id;
+        if($parent_id == 0){
+            return redirect()
+            ->route('{{modelNamePluralKebabCase}}.index')
+            ->with('success', __('The {{modelNameSingularCamelCase}} was created successfully.'));
+        }else{
+            $parent = Module::find($parent_id);
+            $parent = GeneratorUtils::cleanPluralLowerCase($parent->code);
+            if(!empty($parent->migration)){
+            // dd($parent);
+            return redirect()
+                ->route($parent.'.index')
+                ->with('success', __('The {{modelNameSingularCamelCase}}  was created successfully.'));
+            }
+             return redirect()
+            ->route('{{modelNamePluralKebabCase}}.index')
+            ->with('success', __('The {{modelNameSingularCamelCase}} was created successfully.'));
+
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\{{modelNameSingularPascalCase}}  ${{modelNameSingularCamelCase}}
+     * @return
+     */
+
+
+     public function show({{modelNameSingularPascalCase}} ${{modelNameSingularCamelCase}} )
+    {
+
+
+          if(${{modelNameSingularCamelCase}}->sub_id)
+          {
+        $module = Module::find(${{modelNameSingularCamelCase}}->sub_id);
+        $modelName = "App\Models\Admin\\".GeneratorUtils::setModelName($module->code);
+        $child =  $modelName::find(${{modelNameSingularCamelCase}}->data_id);
+
+
+        {{loadRelation}}return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.show', compact('{{modelNameSingularCamelCase}}','module','child'));
+          }
+
+
+        {{loadRelation}}return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.show', compact('{{modelNameSingularCamelCase}}'));
+    }
+
+
+
+
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\{{modelNameSingularPascalCase}}  ${{modelNameSingularCamelCase}}
+     * @return
+     */
+    public function edit({{modelNameSingularPascalCase}} ${{modelNameSingularCamelCase}})
+    {
+        {{loadRelation}}return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.edit', compact('{{modelNameSingularCamelCase}}'));
+    }
+
+     public function editLess($id)
+    {
+
+        ${{modelNameSingularCamelCase}} = {{modelNameSingularPascalCase}}::find($id);
+        {{loadRelation}}return view('admin.{{viewPath}}{{modelNamePluralKebabCase}}.edit-less', compact('{{modelNameSingularCamelCase}}'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\{{modelNameSingularPascalCase}}  ${{modelNameSingularCamelCase}}
+     * @return
+     */
+    public function update(Update{{modelNameSingularPascalCase}}Request $request, {{modelNameSingularPascalCase}} ${{modelNameSingularCamelCase}})
+    {
+        {{updateDataAction}}
+
+
+
+         $module =  Module::where('code', GeneratorUtils::singularSnakeCase('{{modelNameSingularPascalCase}}'))->orWhere('code', GeneratorUtils::pluralSnakeCase('{{modelNameSingularPascalCase}}'))->first();
+            $module_id = (int)$module?->id;
+
+
+
+           $attributes=Attribute::where('module',$module_id)->where('multiple',1)->get();
+
+
+            foreach($attributes as $attr)
+            {
+
+            $relation = GeneratorUtils::singularSnakeCase(str_replace('_id','',$attr->code));
+
+
+
+            if (isset($request[$attr->code])) {
+
+               ${{modelNameSingularCamelCase}}->$relation()->sync($request[$attr->code]);
+
+            } else {
+
+            ${{modelNameSingularCamelCase}}->$relation()->detach();
+            }
+
+            }
+
+
+          $attrs = Attribute::where('module',$module_id)->where('second_column','!=',NULL)->where('first_multi_column',NULL)->get();
+
+            foreach($attrs as $attr)
+            {
+
+
+
+                if($attr->operation == 'sum' )
+                {
+
+
+                    $fFieldNameParts = explode('_', $attr->first_column);
+                    $fLastPart = end($fFieldNameParts);
+
+                    $sFieldNameParts = explode('_', $attr->second_column);
+                    $sLastPart = end($sFieldNameParts);
+
+
+                    if($fLastPart == 'id' && $sLastPart != 'id' ){
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk =  ${{modelNameSingularCamelCase}}->$fcolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                       ${{modelNameSingularCamelCase}}->$attr_code =        (float)$fkValue   +   (float)${{modelNameSingularCamelCase}}->$scolumn ;
+                        ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart == 'id' ){
+
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->second_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk =   ${{modelNameSingularCamelCase}}->$scolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                     ${{modelNameSingularCamelCase}}->$attr_code =       (float)$fkValue   +  (float)  ${{modelNameSingularCamelCase}}->$fcolumn ;
+                    ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart != 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                         ${{modelNameSingularCamelCase}}->$attr_code =    ${{modelNameSingularCamelCase}}->$fcolumn +     ${{modelNameSingularCamelCase}}->$scolumn ;
+                      ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart == 'id' && $sLastPart == 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr1 = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+                         $fkAttr2 = Attribute::where('code', $attr->second_column)
+                         ->where('module',$module_id)
+                          ->first();
+
+                          $valFk1 =   ${{modelNameSingularCamelCase}}->$fcolumn;
+
+                          $valFk2 =   ${{modelNameSingularCamelCase}}->$scolumn;
+
+                          $const1 = GeneratorUtils::setModelName((string)$fkAttr1->constrain, 'default');
+                          $const2 = GeneratorUtils::setModelName((string)$fkAttr2->constrain, 'default');
+
+                          $fkModel1 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const1);
+                          $fkModel2 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const2);
+
+                          $fkValue1 = $fkModel1::where('id', $valFk1)->first()->{str()->snake($fkAttr1->attribute)};
+                          $fkValue2 = $fkModel2::where('id', $valFk2)->first()->{str()->snake($fkAttr2->attribute)};
+
+
+
+
+
+                    ${{modelNameSingularCamelCase}}->$attr_code =  (float)$fkValue1   +   (float)$fkValue2   ;
+                        ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+
+
+
+
+
+                }
+
+                if($attr->operation == 'multiple' )
+                {
+
+
+
+                    $fFieldNameParts = explode('_', $attr->first_column);
+                    $fLastPart = end($fFieldNameParts);
+
+                    $sFieldNameParts = explode('_', $attr->second_column);
+                    $sLastPart = end($sFieldNameParts);
+
+
+                    if($fLastPart == 'id' && $sLastPart != 'id' ){
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk =  ${{modelNameSingularCamelCase}}->$fcolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                      ${{modelNameSingularCamelCase}}->$attr_code =        (float)$fkValue   *   (float)  ${{modelNameSingularCamelCase}}->$scolumn ;
+                         ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart == 'id' ){
+
+
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr = Attribute::where('code', $attr->second_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+
+                         $valFk =  ${{modelNameSingularCamelCase}}->$scolumn;
+
+                         $const = GeneratorUtils::setModelName((string)$fkAttr->constrain, 'default');
+                         $fkModel = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const);
+                         $fkValue = $fkModel::where('id', $valFk)->first()->{str()->snake($fkAttr->attribute)};
+
+
+
+                      ${{modelNameSingularCamelCase}}->$attr_code =       (float)$fkValue   * (float)  ${{modelNameSingularCamelCase}}->$fcolumn ;
+                        ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart != 'id' && $sLastPart != 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        ${{modelNameSingularCamelCase}}->$attr_code =     ${{modelNameSingularCamelCase}}->$fcolumn *    ${{modelNameSingularCamelCase}}->$scolumn ;
+                      ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+                    if($fLastPart == 'id' && $sLastPart == 'id' ){
+
+
+                        $attr_code = GeneratorUtils::singularSnakeCase($attr->code);
+                        $fcolumn = $attr->first_column;
+                        $scolumn = $attr->second_column;
+
+                        $fkAttr1 = Attribute::where('code', $attr->first_column)
+                        ->where('module',$module_id)
+                         ->first();
+
+                         $fkAttr2 = Attribute::where('code', $attr->second_column)
+                         ->where('module',$module_id)
+                          ->first();
+
+                          $valFk1 =   ${{modelNameSingularCamelCase}}->$fcolumn;
+
+                          $valFk2 =   ${{modelNameSingularCamelCase}}->$scolumn;
+
+                          $const1 = GeneratorUtils::setModelName((string)$fkAttr1->constrain, 'default');
+                          $const2 = GeneratorUtils::setModelName((string)$fkAttr2->constrain, 'default');
+
+                          $fkModel1 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const1);
+                          $fkModel2 = 'App\Models\Admin\\' . GeneratorUtils::singularPascalCase($const2);
+
+                          $fkValue1 = $fkModel1::where('id', $valFk1)->first()->{str()->snake($fkAttr1->attribute)};
+                          $fkValue2 = $fkModel2::where('id', $valFk2)->first()->{str()->snake($fkAttr2->attribute)};
+
+
+
+
+
+                        ${{modelNameSingularCamelCase}}->$attr_code =  (float)$fkValue1   *   (float)$fkValue2   ;
+                     ${{modelNameSingularCamelCase}}->save();
+
+
+                    }
+
+
+
+
+                }
+
+
+            }
+
+
+
+
+   $mAttrs = Attribute::where('module',$module_id)->where('type','calc')->where('first_multi_column','!=',NULL)->get();
+
+
+            foreach($mAttrs as $attr)
+            {
+
+
+                 if ($attr->type_of_calc == 'two') {
+
+                $multiAttr = Multi::where('name','like',$attr->name)->where('calc_attr',$attr->id)->first();
+
+                $multiCode =$multiAttr->code;
+
+                $multi=Attribute::where('id',$multiAttr->attribute_id)->first()->code;
+
+                $item1= $attr->first_multi_column;
+                $item2= $attr->second_multi_column;
+
+
+                $ar = json_decode(str( ${{modelNameSingularCamelCase}}->$multi)->snake(), true);
+
+                foreach ($ar as $key => $item) {
+                       if($attr->operation == 'sum' )
+                    {
+
+                    $item[$multiCode] = (string)($item[$item1] + $item[$item2]);
+                    }
+
+
+                    if($attr->operation == 'multiple' )
+                    {
+
+                    $item[$multiCode] = (string)($item[$item1] * $item[$item2]);
+                    }
+
+                    $ar[$key] = $item;
+                }
+
+
+           ${{modelNameSingularCamelCase}}->$multi = $ar;
+
+             ${{modelNameSingularCamelCase}}->save();
+
+            }
+
+     if ($attr->type_of_calc == 'one') {
+
+                $multiAttr = Attribute::where('module',$module_id)->where('type','multi')->where('code','like',$attr->first_column)->first();
+
+                $multiCode = $multiAttr->code;
+
+
+                $item1 = $attr->first_multi_column;
+                $aggAttr = match ($attr->operation) {
+                    'sum', 'count' => 0,
+                    'multiple' => 1,
+                    'avg', 'min', 'max' => null,
+                    default => 0,
+                };
+
+                $ar = json_decode(str(${{modelNameSingularCamelCase}}->$multiCode)->snake(), true);
+
+                foreach ($ar as $key => $item) {
+                    switch ($attr->operation) {
+                        case 'sum':
+                            $aggAttr += $item[$item1];
+                            break;
+                        case 'multiple':
+                            $aggAttr *= $item[$item1];
+                            break;
+                        case 'count':
+                            $aggAttr += 1;
+                            break;
+                        case 'avg':
+                            $aggAttr = ($aggAttr ?? 0) + $item[$item1];
+                            break;
+                        case 'min':
+                            $aggAttr = is_null($aggAttr) ? $item[$item1] : min($aggAttr, $item[$item1]);
+                            break;
+                        case 'max':
+                            $aggAttr = is_null($aggAttr) ? $item[$item1] : max($aggAttr, $item[$item1]);
+                            break;
+                    }
+                }
+
+                if ($attr->operation == 'avg') {
+                    $aggAttr = $aggAttr / count($ar);
+                }
+
+                ${{modelNameSingularCamelCase}}->{$attr->code} = $aggAttr;
+
+                ${{modelNameSingularCamelCase}}->save();
+            }
+            }
+
+
+
+
+        $this->customUpdate($request,${{modelNameSingularCamelCase}});
+
+          if ($request->status == "active") {
+
+
+            ${{modelNameSingularCamelCase}}->global = 1;
+            ${{modelNameSingularCamelCase}}->status = "active";
+            ${{modelNameSingularCamelCase}}->save();
+
+
+        }
+
+
+        if ($request->status == "inactive") {
+
+
+             ${{modelNameSingularCamelCase}}->global = 0;
+             ${{modelNameSingularCamelCase}}->status = "inactive";
+             ${{modelNameSingularCamelCase}}->save();
+
+
+        }
+
+
+        if( !empty($request->module) ){
+
+            $module = Module::find($request->module);
+            $modelName = "App\Models\Admin\\".GeneratorUtils::setModelName($module->code);
+
+                      if($request->module == ${{modelNameSingularCamelCase}}->sub_id)
+                      {
+
+            $data =  $modelName::find(${{modelNameSingularCamelCase}}->data_id);
+            foreach ($module->fields as $value) {
+
+                $attr =  GeneratorUtils::singularSnakeCase($value->code);
+
+                $data->$attr = $request[$attr];
+            }
+            $data->save();
+                      }
+
+                      else{
+
+                           $data = new $modelName();
+            foreach ($module->fields as $value) {
+
+                $attr =  GeneratorUtils::singularSnakeCase($value->code);
+
+                $data->$attr = $request[$attr];
+            }
+            $data->save();
+
+             ${{modelNameSingularCamelCase}}->sub_id = $request->module;
+              ${{modelNameSingularCamelCase}}->data_id = $data->id;
+            ${{modelNameSingularCamelCase}}->save();
+
+                      }
+
+
+        }
+
+             $parent_id = (int)Module::where('code','LIKE', '%' . '{{modelNameSingularPascalCase}}' . '%' )->first()?->parent_id;
+        if($parent_id == 0){
+            return redirect()
+            ->route('{{modelNamePluralKebabCase}}.index')
+            ->with('success', __('The {{modelNameSingularCamelCase}} was updated successfully.'));
+        }else{
+            $parent = Module::find($parent_id);
+            $parent = GeneratorUtils::cleanPluralLowerCase($parent->code);
+            // dd($parent);
+            if(!empty($parent->migration)){
+         return redirect()
+            ->route('{{modelNamePluralKebabCase}}.index')
+            ->with('success', __('The {{modelNameSingularCamelCase}} was updated successfully.'));
+            }
+             return redirect()
+            ->route('{{modelNamePluralKebabCase}}.index')
+            ->with('success', __('The {{modelNameSingularCamelCase}} was updated successfully.'));
+
+        }
+
+
+
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\{{modelNameSingularPascalCase}}  ${{modelNameSingularCamelCase}}
+     * @return
+     */
+    public function destroy({{modelNameSingularPascalCase}} ${{modelNameSingularCamelCase}})
+    {
+        try {
+
+     $module =  Module::where('code', GeneratorUtils::singularSnakeCase('{{modelNameSingularPascalCase}}'))->orWhere('code', GeneratorUtils::pluralSnakeCase('{{modelNameSingularPascalCase}}'))->first();
+            $module_id = (int)$module?->id;
+
+
+            if (auth()->user()->id != 1) {
+
+                $sub = auth()->user()?->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+                if ((!(auth()->user()->hasRole('vendor')) || !(auth()->user()->hasRole('admin')) || !(auth()->user()->hasRole('public_vendor'))) && auth()->user()->user_id != 1) {
+                    $customer = User::find(auth()->user()->user_id);
+                    $sub = $customer->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+                }
+                if($module->user_id != 1){
+                    $limit = Limit::where('module_id', $module_id)
+                        ->where('subscription_id', $sub?->id)
+                        ->first();
+
+                    if ($limit) {
+                        $do = true;
+
+                        if ((!(auth()->user()->hasRole('vendor')) || !(auth()->user()->hasRole('admin')) || !(auth()->user()->hasRole('public_vendor')) )&& auth()->user()->user_id != 1) {
+                            $customer = User::find(auth()->user()->user_id);
+                            $sub = $customer->subscriptions()->where('status', 'active')->orderBy('created_at', 'desc')->first();
+                        } elseif ((!(auth()->user()->hasRole('vendor')) && !(auth()->user()->hasRole('admin')) && !(auth()->user()->hasRole('public_vendor'))) && auth()->user()->user_id == 1) {
+                            $do = false;
+                        }
+                        if ($do) {
+
+
+
+
+                            $limit->data_limit=(int)$limit->data_limit - 1;
+                            $limit->save();
+                        }
+
+                    }
+                }
+            }
+
+
+            if(${{modelNameSingularCamelCase}}->sub_id)
+            {
+
+            $module = Module::find(${{modelNameSingularCamelCase}}->sub_id);
+            $modelName = "App\Models\Admin\\".GeneratorUtils::setModelName($module->code);
+            $child =  $modelName::find(${{modelNameSingularCamelCase}}->data_id);
+            $child->delete();
+            }
+
+            ${{modelNameSingularCamelCase}}->delete();
+
+
+            return response()->json(['msg' => 'Item deleted successfully!'], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['msg' => 'Not deleted'], 500);
+        }
+    }
+
+    public function assign(Request $request){
+        // dd($request);
+        $selected_row = $request->rows_selected;
+        $g_id = $request->g_id;
+        $c_id = $request->c_id;
+        if(count($selected_row)){
+            foreach ($selected_row as $key => $value) {
+                $item = {{modelNameSingularPascalCase}}::find($value['id']);
+                $item->customer_id = (int)$c_id > 0 ? $c_id : null;
+                $item->customer_group_id = (int)$g_id > 0 ? $g_id : null;
+                $item->save();
+            }
+            return response()->json(['msg' => 'Items assigned successfully!'], 200);
+
+        }
+        return response()->json(['msg' => 'no items selected'], 500);
+    }
+}

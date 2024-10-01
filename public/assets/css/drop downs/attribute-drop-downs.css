@@ -1,0 +1,19 @@
+  .fktypes {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      /* Space before the Type section */
+  }
+
+  .custom-controls-stacked {
+      margin-right: 20px;
+      /* Adjust the spacing between items if needed */
+  }
+
+  .fktypes p {
+      width: 100%;
+      margin: 0;
+      margin-bottom: 10px;
+      /* Space between "Type" label and radio buttons */
+  }
