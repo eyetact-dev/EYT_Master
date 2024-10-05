@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\ConfigResource;
 use App\Mail\SendOTP;
+use App\Models\Admin\Machine;
 use App\Models\Admin\Software;
 use App\Models\CustomerGroup;
 use App\Models\Plan;
@@ -94,20 +95,21 @@ class AuthController extends Controller
             DB::beginTransaction();
 
 
-            $serial = Software::where('serial_number', $request->serial_number)
+            $machineId = Machine::where('machine_id', $request->machine_id)
                 ->first();
 
 
-            if (!$serial) {
+            if (!$machineId) {
 
-                return $this->returnError('The serial number not correct!');
+                return $this->returnError('The machineId number not correct!');
             }
 
-            if ($serial->customer_id) {
+            if ($machineId->customer_id) {
 
-                $vendor = User::find($serial->customer_id);
+                $vendor = User::find($machineId->customer_id);
                 $user = User::where('email', $request->email)
-                    ->first();
+                           ->where('username', $request->username)
+                           ->first();
 
                 if ($user) {
 
@@ -138,12 +140,13 @@ class AuthController extends Controller
 
             }
 
-            if ($serial->customer_id == NULL) {
+            if ($machineId->customer_id == NULL) {
 
-                if ($serial->customer_group_id != NULL) {
+                if ($machineId->customer_group_id != NULL) {
 
 
                     $user = User::where('email', $request->email)
+                        ->where('username', $request->username)
                         ->first();
 
                     if ($user) {
@@ -153,8 +156,8 @@ class AuthController extends Controller
 
                             // dd($user);
 
-                            $serial->customer_id = $user->id;
-                            $serial->save();
+                            $machineId->customer_id = $user->id;
+                            $machineId->save();
 
                             Auth::login($user);
 
@@ -182,18 +185,19 @@ class AuthController extends Controller
 
                 if (isset($request->email)) {
                     $check = User::where('email', $request->email)
+                        ->orWhere('username',$request->username)
                         ->first();
 
                     if ($check) {
 
-                        return $this->returnError('The email address is already used!');
+                        return $this->returnError('The email address or username is already used!');
                     }
                 }
 
                 $user = $this->userRepositry->save($request);
                 $user->assignRole('vendor');
 
-                $plan_id=CustomerGroup::find($serial->customer_group_id)->plan_id;
+                $plan_id=CustomerGroup::find($machineId->customer_group_id)->plan_id;
                 $plan = Plan::find($plan_id);
 
                 $sub = new Subscription();
@@ -211,8 +215,8 @@ class AuthController extends Controller
 
                 if ($user) {
 
-                    $serial->customer_id = $user->id;
-                    $serial->save();
+                    $machineId->customer_id = $user->id;
+                    $machineId->save();
 
                     return response([
                         'status' => true,
@@ -300,6 +304,23 @@ class AuthController extends Controller
         }
 
         return $this->returnError('User not found!');
+    }
+
+
+    public function updatePassword(Request $request)
+    {
+        $user = auth()->user();
+
+        if (Hash::check($request->old_password, $user->password)) {
+
+           $user->update([
+                    'password' => Hash::make($request->new_password),
+                ]);
+
+            return $this->returnSuccessMessage('Password has been changed');
+        }
+
+        return $this->returnError('Password not matched!');
     }
 
     public function updateById(Request $request)

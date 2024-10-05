@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 
+use App\Models\Admin\Machine;
 use App\Models\Admin\Software;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -21,7 +22,7 @@ class UserResource extends JsonResource
             'id'        => $this->id,
             'username'      => $this->username,
             'email'     => $this->email,
-            'machine_id' => Software::where('customer_id', auth()->user()->id)->first()->id,
+            'machine_id' => Machine::where('customer_id', auth()->user()->id)->first()->id,
 
 
         ];

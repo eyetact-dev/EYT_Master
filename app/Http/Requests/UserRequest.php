@@ -25,8 +25,9 @@ class UserRequest extends FormRequest
     {
         return [
 
-            'serial_number' => 'required | string ',
+            'machine_id' => 'required | string ',
             'email' => 'required|email',
+            'username' => 'required | string ',
             'password' => 'required ',
 
         ];

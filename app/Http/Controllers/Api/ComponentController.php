@@ -413,4 +413,87 @@ class ComponentController extends ApiController
 
         return $this->returnData('data', new MyComponentsResource($matchedComponent), __('Get successfully'));
     }
+
+
+
+
+    public function getMinMaxUnit($componentId)
+    {
+
+        $component = Component::find($componentId);
+
+
+        if (!$component) {
+            return $this->returnError(__('Component not found!'));
+        }
+
+        if(  $component->compo_carrier == 1){
+
+
+
+
+            $componentData = [
+                'unit' => '%',
+                'minimum' => '0',
+                'maximum' => '100',
+                'default' => '0',
+                'mainValue' => '100' ,
+
+            ];
+
+
+        }
+
+        else{
+
+        if($component->combined_component == 1){
+
+            $componentData = [
+                'unit' => '%',
+                'minimum' => '0',
+                'maximum' => '50',
+                'default' => '0',
+                'mainValue' => '100' ,
+
+            ];
+
+
+
+        }
+
+        if($component->combined_component == 0){
+
+
+            $compo_element = json_decode($component->compo_element, true);
+
+            $compo_element = array_combine(
+                array_map('intval', array_keys($compo_element)),
+                array_values($compo_element)
+            );
+
+            foreach ($compo_element as $item) {
+
+                $componentData = [
+                    'unit' => $item['unit'],
+                    'minimum' => '0',
+                    'maximum' =>(string)($item['value'] * 0.5),
+                    'default' => '0',
+                    'mainValue' => $item['value'] ,
+
+                ];
+
+                break;
+            }
+
+
+    }
+
+    }
+    // dd($componentData);
+
+    return $this->returnSuccessMessage($componentData);
+
+    }
+
+
 }

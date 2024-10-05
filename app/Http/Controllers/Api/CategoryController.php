@@ -7,11 +7,14 @@ use App\Http\Resources\ComponentResource;
 use App\Http\Resources\MixtureDataResource;
 use App\Http\Resources\MixtureResource;
 use App\Http\Resources\MyComponentsResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Admin\Category;
 use App\Models\Admin\Classification;
 use App\Models\Admin\Component;
 use App\Models\Admin\ComponentsSet;
+use App\Models\Admin\Machine;
 use App\Models\Admin\Mixture;
+use App\Models\Admin\Product;
 use App\Models\Admin\Software;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -74,27 +77,72 @@ class CategoryController extends ApiController
     }
 
 
-    public function categories($id)
-{
-    $machine = Software::find($id);
+    public function getCategoriesByMachine(Request $request)
+    {
 
-    $categories = Category::where(function ($query) use ($machine) {
-        $query->where('customer_id', auth()->user()->id)
-            ->orWhere('user_id', auth()->user()->id)
-            ->orWhere('assign_id', auth()->user()->id)
-            ->orWhere(function ($query) {
-                $query->where('global', 1)
-                    ->where('status', 'active');
-            });
+            $machine = Machine::find($request->machine_id);
+            $categories = collect([]);
 
-        if ($machine->customer_group_id !== null) {
-            $query->orWhere('customer_group_id', $machine->customer_group_id);
-        }
-    })
-        ->get();
+            if ($machine) {
+                $components = json_decode($machine->machin_component);
+                $componentIds = collect($components)->pluck('id');
 
-    return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
-}
+                foreach ($componentIds as $compoId) {
+                    $component = Component::find($compoId);
+                    $compo_category = json_decode($component->compo_category, true);
+                    $compo_category_collection = collect($compo_category)->pluck('id');
+
+                    foreach ($compo_category_collection as $categoryId) {
+                        $category = Category::find($categoryId);
+                        if ($category && !$categories->contains('id', $category->id)) {
+                            $categories->push($category);
+                        }
+                    }
+                }
+                // dd($categories);
+
+                return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
+            }
+
+
+
+
+    }
+
+
+    public function getProductsByCategory(Request $request){
+
+        $machine = Machine::find($request->machine_id);
+
+
+        $products =  Product::where('machine_machine_model_id',$machine->id)->where('category_cat_name_id',$request->category_id)->get();
+
+        return $this->returnData('data', ProductResource::collection($products), __('Get successfully'));
+
+    }
+
+
+//     public function categories($id)
+// {
+//     $machine = Software::find($id);
+
+//     $categories = Category::where(function ($query) use ($machine) {
+//         $query->where('customer_id', auth()->user()->id)
+//             ->orWhere('user_id', auth()->user()->id)
+//             ->orWhere('assign_id', auth()->user()->id)
+//             ->orWhere(function ($query) {
+//                 $query->where('global', 1)
+//                     ->where('status', 'active');
+//             });
+
+//         if ($machine->customer_group_id !== null) {
+//             $query->orWhere('customer_group_id', $machine->customer_group_id);
+//         }
+//     })
+//         ->get();
+
+//     return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
+// }
 
     // public function categories($id)
     // {

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ComponentController;
 use App\Http\Controllers\Api\ComponentSetController;
 use App\Http\Controllers\Api\MixtureController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -34,7 +35,7 @@ Route::post('check-user', [AuthController::class, 'sendOtp']);
 
 Route::post('check-otp', [AuthController::class, 'checkOTP']);
 
-Route::post('update-password', [AuthController::class, 'changePassword']);
+
 
 Route::post('update-user', [AuthController::class, 'updateById']);
 
@@ -42,13 +43,22 @@ Route::post('update-user', [AuthController::class, 'updateById']);
 Route::get('get-results/{mixId}', [MixtureController::class, 'getResults']);
 
 
+Route::post('categories', [CategoryController::class, 'getCategoriesByMachine']);
+
+
+//getProductsByCategory
+Route::post('products-by-category', [CategoryController::class, 'getProductsByCategory']);
+
+
 Route::middleware(['auth:api'])->group(function () {
+
+    Route::post('update-password', [AuthController::class, 'updatePassword']);
 
     Route::get('my-config', [AuthController::class, 'config']);
 
 
     //Category
-    Route::get('categories/{id}', [CategoryController::class, 'categories']);
+
 
     Route::post('category-create', [CategoryController::class, 'save']);
     Route::get('category/{id}', [CategoryController::class, 'view']);
@@ -59,6 +69,10 @@ Route::middleware(['auth:api'])->group(function () {
 
     //my lists
     Route::post('my-lists', [CategoryController::class, 'myLists']);
+
+
+
+
 
 
 
@@ -75,6 +89,8 @@ Route::middleware(['auth:api'])->group(function () {
 
     //get components by category
     Route::post('get-components-by-category', [ComponentController::class, 'getComponentsByCategory']);
+
+
 
 
 
@@ -100,8 +116,20 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('elements', [ComponentController::class, 'elements']);
 
 
+    Route::post('machineorder-save', [ProductController::class, 'createMachineOrder']);
+
+
 
 });
 
 
 Route::get('mixture/{id}', [MixtureController::class, 'view']);
+
+
+Route::get('product/{id}', [ProductController::class, 'view']);
+
+
+Route::get('get-minmax-unit/{id}', [ComponentController::class, 'getMinMaxUnit']);
+
+
+

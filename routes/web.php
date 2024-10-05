@@ -1023,7 +1023,7 @@ Route::get('/get-minmax-unit/{component_id}', function ($component_id) {
 
 
 
-        if(  $component->component_carrier == 1){
+        if(  $component->compo_carrier == 1){
 
 
 
