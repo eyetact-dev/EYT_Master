@@ -17,8 +17,9 @@ class ConfigResource extends JsonResource
         return [
 
 
-            'current_subscription' => $this->subscriptions()->where('status','active')->orderBy('created_at', 'desc')->first(),
+            // 'current_subscription' => $this->subscriptions()->where('status','active')->orderBy('created_at', 'desc')->first(),
             // 'permissions' => PermissionResource::collection($this->subscriptions()->where('status','active')->orderBy('created_at','desc')->first()?->plan->permissions),
+
             'permissions'=> $this->subscriptions()->where('status','active')->orderBy('created_at', 'desc')->first()?->plan?->permissions->pluck('name')->toArray(),
             'app_version' =>config('app.app_version')
 
