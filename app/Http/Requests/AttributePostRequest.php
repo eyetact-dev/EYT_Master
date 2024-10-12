@@ -24,6 +24,7 @@ class AttributePostRequest extends FormRequest
      */
     public function rules(): array
     {
+        // dd($this);
         return [
             'name' => ['required', Rule::unique('attributes')->where(function ($query) {
                 return $query->where('module', $this->module);
@@ -32,14 +33,25 @@ class AttributePostRequest extends FormRequest
             'code' => [
                 'required',
                 Rule::unique('attributes')->where(function ($query) {
+
                     return $query->where('module', $this->module);
                 })
             ],
-
-            // 'code' => 'required|unique:attributes,code',
-
             'module' => 'required',
-            'input_types' => 'required'
+            'input_types' => 'required',
+
+
+            ///// sub input validations
+            'multi' => 'required_if:input_types,multi',
+            'multi.*.name' => [
+                'required_if:input_types,multi',
+                'string',
+                'regex:/^[^\d].*/',
+            ],
+            'multi.*.type' => [
+                'required_if:input_types,multi',
+            ]
+
         ];
     }
 
@@ -53,8 +65,11 @@ class AttributePostRequest extends FormRequest
 
             'input_types.required' => 'attribute type is required',
 
-            'code.unique' => 'code should be unique over all the system',
-            'code.required' => 'code is required'
+            'code.unique' => 'code should be unique in this module',
+            'code.required' => 'code is required',
+
+            ///sub input validations rules
+            'multi.*.name.regex' => 'the multi attribute name should not begin with number'
         ];
     }
 }

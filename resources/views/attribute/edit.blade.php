@@ -3,7 +3,7 @@
     // dump($data);
 @endphp
 <form action="{{ route('attribute.update', $attribute->id) }}" id="attributeCreate" method="POST" autocomplete="off"
-    enctype="multipart/form-data">
+    novalidate="novalidate" enctype="multipart/form-data">
     @csrf
     <div class="row">
         <div class="col-lg-12 col-md-12">
@@ -29,13 +29,13 @@
                             <label class="form-label" for="name">Name<span class="text-red">*</span></label>
                             <input type="text" name="name"
                                 class="google-input @error('name') is-invalid @enderror"
-                                value="{{ old('name', $attribute->name) }}">
-                                <span id="name-error" class="error text-danger d-none error-message"></span>
+                                value="{{ old('name', $attribute->name) }}" required>
+                            <span id="name-error" class="error text-danger d-none error-message"></span>
                         </div>
 
                         <div class="col-sm-12 input-box">
-                            <label class="form-label" for="code">Code<span class="text-red">*</span></label>
-                            <input disabled type="text" name="code"
+                            <label class="form-label" for="update-code">Code<span class="text-red">*</span></label>
+                            <input disabled type="text" name="update-code"
                                 class="input-code google-input @error('code') is-invalid @enderror"
                                 value="{{ old('code', $attribute->code) }}">
 
@@ -99,18 +99,26 @@
 
                                         $module = App\Models\Module::find($attribute->module);
 
-                                        $code =  App\Generators\GeneratorUtils::setModelName( explode('_', $attribute->code)[0] );
+                                        $code = App\Generators\GeneratorUtils::setModelName(
+                                            explode('_', $attribute->code)[0],
+                                        );
 
-                                        $model = App\Models\Module::where('code',App\Generators\GeneratorUtils::singularSnakeCase($code))
-                                                                   ->orWhere('code',App\Generators\GeneratorUtils::pluralSnakeCase($code))
-                                                                    ?->first();
-                                                                        // dd($model);
+                                        $model = App\Models\Module::where(
+                                            'code',
+                                            App\Generators\GeneratorUtils::singularSnakeCase($code),
+                                        )
+                                            ->orWhere('code', App\Generators\GeneratorUtils::pluralSnakeCase($code))
+                                            ?->first();
+                                        // dd($model);
 
                                         if (in_array($module->id, [1, 2, 3, 4, 5])) {
-                                            $modelName = 'App\Models\\' . App\Generators\GeneratorUtils::setModelName($model->code);
+                                            $modelName =
+                                                'App\Models\\' .
+                                                App\Generators\GeneratorUtils::setModelName($model->code);
                                         } else {
                                             $modelName =
-                                                'App\Models\Admin\\' . App\Generators\GeneratorUtils::setModelName($model->code);
+                                                'App\Models\Admin\\' .
+                                                App\Generators\GeneratorUtils::setModelName($model->code);
                                         }
 
                                         $query = $modelName::all()->pluck($attribute->condition_attr, 'id');
@@ -301,10 +309,10 @@
                                                                     <option @selected($multi->type == 'foreignId')
                                                                         value="foreignId">Lookup</option>
 
-                                                                        <option @selected($multi->type == 'doubleMulti')
-                                                                            value="doubleMulti">Double Attribute</option>
-                                                                            <option @selected($multi->type == 'calc')
-                                                                                value="calc">Calculate Attribute</option>
+                                                                    <option @selected($multi->type == 'doubleMulti')
+                                                                        value="doubleMulti">Double Attribute</option>
+                                                                    <option @selected($multi->type == 'calc')
+                                                                        value="calc">Calculate Attribute</option>
 
                                                                 </select>
                                                             </div>
@@ -320,13 +328,17 @@
 
                                                                     <div class="form-group col-sm-4">
                                                                         <label class="custom-switch form-label">
-                                                                            <input type="checkbox" name="multi[{{ $index }}][unique]" class="custom-switch-input" id="unique"
-                                                                            {{ $multi->unique == 1 ? 'checked' : '' }}>
-                                                                            <span class="custom-switch-indicator"></span>
-                                                                            <span class="custom-switch-description">Unique</span>
+                                                                            <input type="checkbox"
+                                                                                name="multi[{{ $index }}][unique]"
+                                                                                class="custom-switch-input"
+                                                                                id="unique"
+                                                                                {{ $multi->unique == 1 ? 'checked' : '' }}>
+                                                                            <span
+                                                                                class="custom-switch-indicator"></span>
+                                                                            <span
+                                                                                class="custom-switch-description">Unique</span>
                                                                         </label>
                                                                     </div>
-
                                                                 @endif
 
                                                                 @if ($multi->type == 'foreignId')
@@ -428,298 +440,429 @@
 
 
                                                                 @if ($multi->type == 'calc')
+                                                                    <div class="input-box form-constrain mt-2">
+                                                                        <div
+                                                                            class="input-box form-on-update mt-2 form-on-update-foreign">
 
-                                                                <div class="input-box form-constrain mt-2">
-                                                                    <div class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                            <select class="google-input tcalc-drop"
+                                                                                name="multi[{{ $index }}][type_of_calc]"
+                                                                                required>
+                                                                                <option value="" disabled
+                                                                                    selected>-- Select type of calculate
+                                                                                    --</option>
+                                                                                <option value="one"
+                                                                                    @if ($multi->type_of_calc == 'one') selected @endif>
+                                                                                    One Column For Calculate</option>
+                                                                                <option value="two"
+                                                                                    @if ($multi->type_of_calc == 'two') selected @endif>
+                                                                                    Two Column For Calculate</option>
 
-                                                                        <select class="google-input tcalc-drop"  name="multi[{{ $index }}][type_of_calc]" required>
-                                                                            <option value="" disabled selected>-- Select type of calculate --</option>
-                                                                                  <option value="one"  @if ($multi->type_of_calc == 'one') selected @endif>One Column For Calculate</option>
-                                                                                  <option value="two" @if ($multi->type_of_calc == 'two') selected @endif>Two Column For Calculate</option>
-
-                                                                        </select>
-                                                                    </div>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
 
 
                                                                     @if ($multi->type_of_calc == 'one')
+                                                                        <div class="input-box form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select
+                                                                                    class="google-input operation-drop"
+                                                                                    name="multi[{{ $index }}][operation]"
+                                                                                    required>
+                                                                                    <option value="" disabled
+                                                                                        selected>-- Select operation --
+                                                                                    </option>
+                                                                                    <option value="sum"
+                                                                                        @if ($multi->operation == 'sum') selected @endif>
+                                                                                        sum</option>
+
+                                                                                    <option value="avg"
+                                                                                        @if ($multi->operation == 'avg') selected @endif>
+                                                                                        average</option>
 
 
-                                                                    <div class="input-box form-constrain mt-2">
-                                                                        <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                            <select class="google-input operation-drop"  name="multi[{{ $index }}][operation]" required>
-                                                                                <option value="" disabled selected>-- Select operation --</option>
-                                                                                      <option value="sum" @if ($multi->operation == 'sum') selected @endif>sum</option>
-
-                                                                                      <option value="avg" @if ($multi->operation == 'avg') selected @endif>average</option>
-
-
-                                                                            </select>
+                                                                                </select>
+                                                                            </div>
                                                                         </div>
+
+
+                                                                        <label class="form-label fcolumn">select
+                                                                            column<span
+                                                                                class="text-red">*</span></label>
+                                                                        <div
+                                                                            class="input-box child-drop multi-column1 form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select class="google-input test-first"
+                                                                                    name="multi[{{ $index }}][first_column]"
+                                                                                    required>
+
+                                                                                    <option
+                                                                                        value="{{ $multi->first_column }}">
+                                                                                        {{ $multi->first_column }}
+                                                                                    </option>
+                                                                                </select>
+                                                                            </div>
                                                                         </div>
-
-
-                                                                        <label class="form-label fcolumn" >select column<span class="text-red">*</span></label>
-                                                                        <div class="input-box child-drop multi-column1 form-constrain mt-2">
-                                                                        <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                            <select class="google-input test-first" name="multi[{{ $index }}][first_column]" required>
-
-                                                                                <option value="{{$multi->first_column}}" >{{$multi->first_column}}</option>
-                                                                            </select>
-                                                                        </div></div>
-
                                                                     @endif
 
 
 
                                                                     @if ($multi->type_of_calc == 'two')
+                                                                        <div class="input-box form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select
+                                                                                    class="google-input operation-drop"
+                                                                                    name="multi[{{ $index }}][operation]"
+                                                                                    required>
+                                                                                    <option value="" disabled
+                                                                                        selected>-- Select operation --
+                                                                                    </option>
+                                                                                    <option value="sum"
+                                                                                        @if ($multi->operation == 'sum') selected @endif>
+                                                                                        sum</option>
+                                                                                    <option value="multiple"
+                                                                                        @if ($multi->operation == 'multiple') selected @endif>
+                                                                                        multiple</option>
 
-                                                                    <div class="input-box form-constrain mt-2">
-                                                                        <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                            <select class="google-input operation-drop"  name="multi[{{ $index }}][operation]" required>
-                                                                                <option value="" disabled selected>-- Select operation --</option>
-                                                                                      <option value="sum" @if ($multi->operation == 'sum') selected @endif>sum</option>
-                                                                                      <option value="multiple" @if ($multi->operation == 'multiple') selected @endif>multiple</option>
 
-
-                                                                            </select>
-                                                                        </div>
-                                                                        </div>
-
-
-
-                                                                        <label class="form-label fcolumn" >select first field<span class="text-red">*</span></label>
-                                                                            <div class="input-box child-drop multi-column1 form-constrain mt-2">
-                                                                            <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                <select class="google-input test-first" name="multi[{{ $index }}][first_column]" required>
-                                                                                    <option value="{{$multi->first_column}}" >{{$multi->first_column}}</option>
                                                                                 </select>
-                                                                            </div></div>
+                                                                            </div>
+                                                                        </div>
 
 
-                                                                            <label class="form-label scolumn" >select second field<span class="text-red">*</span></label>
-                                                                            <div class="input-box child2-drop multi-column2 form-constrain mt-2">
-                                                                            <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                <select class="google-input test-second" name="multi[{{ $index }}][second_column]" required>
-                                                                                    <option value="{{$multi->second_column}}" >{{$multi->second_column}}</option>
+
+                                                                        <label class="form-label fcolumn">select first
+                                                                            field<span
+                                                                                class="text-red">*</span></label>
+                                                                        <div
+                                                                            class="input-box child-drop multi-column1 form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select class="google-input test-first"
+                                                                                    name="multi[{{ $index }}][first_column]"
+                                                                                    required>
+                                                                                    <option
+                                                                                        value="{{ $multi->first_column }}">
+                                                                                        {{ $multi->first_column }}
+                                                                                    </option>
                                                                                 </select>
-                                                                            </div></div>
+                                                                            </div>
+                                                                        </div>
 
+
+                                                                        <label class="form-label scolumn">select second
+                                                                            field<span
+                                                                                class="text-red">*</span></label>
+                                                                        <div
+                                                                            class="input-box child2-drop multi-column2 form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select
+                                                                                    class="google-input test-second"
+                                                                                    name="multi[{{ $index }}][second_column]"
+                                                                                    required>
+                                                                                    <option
+                                                                                        value="{{ $multi->second_column }}">
+                                                                                        {{ $multi->second_column }}
+                                                                                    </option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
                                                                     @endif
-
-
-
-
-
-
                                                                 @endif
 
 
                                                                 @if ($multi->type == 'doubleMulti')
-
-
-
-
-                                                                <div class="input-box form-constrain mt-2">
-                                                                    <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                        <select class="google-input primary-drop"  name="multi[{{ $index }}][primary]" required>
-                                                                                <option value="" disabled selected>-- Select primary attribute --</option>
-                                                                                <option value="text" @if ($multi->primary == 'text') selected @endif>Text</option>
-                                                                                <option value="integer" @if ($multi->primary == 'integer') selected @endif>Integer Number</option>
-                                                                                <option value="decimal" @if ($multi->primary == 'decimal') selected @endif>Decimal Number</option>
-                                                                                <option value="select" @if ($multi->primary == 'select') selected @endif>Select</option>
-                                                                                <option value="lookup" @if ($multi->primary == 'lookup') selected @endif>Lookup</option>
+                                                                    <div class="input-box form-constrain mt-2">
+                                                                        <div
+                                                                            class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                            <select class="google-input primary-drop"
+                                                                                name="multi[{{ $index }}][primary]"
+                                                                                required>
+                                                                                <option value="" disabled
+                                                                                    selected>-- Select primary attribute
+                                                                                    --</option>
+                                                                                <option value="text"
+                                                                                    @if ($multi->primary == 'text') selected @endif>
+                                                                                    Text</option>
+                                                                                <option value="integer"
+                                                                                    @if ($multi->primary == 'integer') selected @endif>
+                                                                                    Integer Number</option>
+                                                                                <option value="decimal"
+                                                                                    @if ($multi->primary == 'decimal') selected @endif>
+                                                                                    Decimal Number</option>
+                                                                                <option value="select"
+                                                                                    @if ($multi->primary == 'select') selected @endif>
+                                                                                    Select</option>
+                                                                                <option value="lookup"
+                                                                                    @if ($multi->primary == 'lookup') selected @endif>
+                                                                                    Lookup</option>
                                                                             </select>
-                                                                    </div>
+                                                                        </div>
                                                                     </div>
 
                                                                     <div class="input-box form-constrain mt-2">
-                                                                    <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                        <select class="google-input secondary-drop"  name="multi[{{ $index }}][secondary]" required>
-                                                                            <option value="" disabled selected>-- Select secondary attribute --</option>
-                                                                            <option value="prefix" @if ($multi->secondary == 'prefix') selected @endif>fixed prefix</option>
-                                                                            <option value="suffix" @if ($multi->secondary == 'suffix') selected @endif>fixed suffix</option>
-                                                                            <option value="lookprefix" @if ($multi->secondary == 'lookprefix') selected @endif>lookup prefix</option>
-                                                                            <option value="looksuffix" @if ($multi->secondary == 'looksuffix') selected @endif>lookup suffix</option>
-                                                                        </select>
+                                                                        <div
+                                                                            class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                            <select class="google-input secondary-drop"
+                                                                                name="multi[{{ $index }}][secondary]"
+                                                                                required>
+                                                                                <option value="" disabled
+                                                                                    selected>-- Select secondary
+                                                                                    attribute --</option>
+                                                                                <option value="prefix"
+                                                                                    @if ($multi->secondary == 'prefix') selected @endif>
+                                                                                    fixed prefix</option>
+                                                                                <option value="suffix"
+                                                                                    @if ($multi->secondary == 'suffix') selected @endif>
+                                                                                    fixed suffix</option>
+                                                                                <option value="lookprefix"
+                                                                                    @if ($multi->secondary == 'lookprefix') selected @endif>
+                                                                                    lookup prefix</option>
+                                                                                <option value="looksuffix"
+                                                                                    @if ($multi->secondary == 'looksuffix') selected @endif>
+                                                                                    lookup suffix</option>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
-                                                                    </div>
 
 
 
-                                                                @if ($multi->secondary != 'lookprefix' && $multi->secondary != 'looksuffix')
-                                                                    <div class="col-sm-12 input-box fixed-val">
-                                                                            <label class="form-label" for="fixed_value">Fixed value<span class="text-red">*</span></label>
-                                                                            <input type="text" name="multi[{{ $index }}][fixed_value]" id="fixed_value"
+                                                                    @if ($multi->secondary != 'lookprefix' && $multi->secondary != 'looksuffix')
+                                                                        <div class="col-sm-12 input-box fixed-val">
+                                                                            <label class="form-label"
+                                                                                for="fixed_value">Fixed value<span
+                                                                                    class="text-red">*</span></label>
+                                                                            <input type="text"
+                                                                                name="multi[{{ $index }}][fixed_value]"
+                                                                                id="fixed_value"
                                                                                 class="google-input @error('fixed_value') is-invalid @enderror"
-                                                                                value="{{ $multi->fixed_value}}">
+                                                                                value="{{ $multi->fixed_value }}">
                                                                             @error('fixed_value')
-                                                                                <span class="error name-error">{{ $message }}</span>
+                                                                                <span
+                                                                                    class="error name-error">{{ $message }}</span>
                                                                             @enderror
                                                                         </div>
-                                                                        @endif
+                                                                    @endif
 
 
-                                                                        @if ($multi->primary == 'lookup')
+                                                                    @if ($multi->primary == 'lookup')
                                                                         <div class="input-box c-f form-constrain mt-2">
-                                                                            <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                <select class="google-input select-module" name="multi[{{ $index }}][constrain]" required>
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                <select
+                                                                                    class="google-input select-module"
+                                                                                    name="multi[{{ $index }}][constrain]"
+                                                                                    required>
                                                                                     @foreach (\App\Models\Module::all() as $key => $value)
-                                                                                    <option
-                                                                                        data-id="{{ $value->id }}"
-                                                                                        value="{{ $value->code }}"
-                                                                                        @selected(App\Generators\GeneratorUtils::singularSnakeCase((string) $value->code) == App\Generators\GeneratorUtils::singularSnakeCase($multi->constrain))>
-                                                                                        {{ $value->name }}</option>;
-                                                                                @endforeach
+                                                                                        <option
+                                                                                            data-id="{{ $value->id }}"
+                                                                                            value="{{ $value->code }}"
+                                                                                            @selected(App\Generators\GeneratorUtils::singularSnakeCase((string) $value->code) == App\Generators\GeneratorUtils::singularSnakeCase($multi->constrain))>
+                                                                                            {{ $value->name }}
+                                                                                        </option>;
+                                                                                    @endforeach
                                                                                 </select>
                                                                             </div>
                                                                             <small class="text-secondary">
                                                                                 <ul class="my-1 mx-2 p-0">
-                                                                                    <li>Use '/' if related model at sub folder, e.g.: Main/Product.</li>
-                                                                                    <li>Field name must be related model + "_id", e.g.: user_id</li>
+                                                                                    <li>Use '/' if related model at sub
+                                                                                        folder, e.g.: Main/Product.</li>
+                                                                                    <li>Field name must be related model
+                                                                                        + "_id", e.g.: user_id</li>
                                                                                 </ul>
                                                                             </small>
                                                                         </div>
 
 
                                                                         @php
-                                                                        $module = \App\Models\Module::where(
-                                                                            'code',
-                                                                            App\Generators\GeneratorUtils::singularSnakeCase(
-                                                                                $multi->constrain,
-                                                                            ),
-                                                                        )
-                                                                            ->orWhere(
+                                                                            $module = \App\Models\Module::where(
                                                                                 'code',
-                                                                                App\Generators\GeneratorUtils::pluralSnakeCase(
+                                                                                App\Generators\GeneratorUtils::singularSnakeCase(
                                                                                     $multi->constrain,
                                                                                 ),
                                                                             )
-                                                                            ?->first();
-                                                                    @endphp
-
-                                                                        <div class="input-box child-drop form-constrain mt-2">
-                                                                            <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                @if($module)
-                                                                                <select class="google-input " name="multi[{{ $index }}][attribute]" required>
-                                                                                    @foreach ($module->fields as $key => $value)
-                                                                                        <option
-                                                                                            data-id="{{ $value->id }}"
-                                                                                            value="{{ $value->code }}"
-                                                                                            @selected($value->code == $multi->attribute)>
-                                                                                            {{ $value->name }}
-                                                                                        </option>;
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            @endif
-
-
-                                                                            @if ($multi->secondary == 'lookprefix' || $multi->secondary == 'looksuffix')
-
-
-                                                                        @php
-                                                                        $module = \App\Models\Module::where(
-                                                                            'code',
-                                                                            App\Generators\GeneratorUtils::singularSnakeCase(
-                                                                                $multi->constrain,
-                                                                            ),
-                                                                        )
-                                                                            ->orWhere(
-                                                                                'code',
-                                                                                App\Generators\GeneratorUtils::pluralSnakeCase(
-                                                                                    $multi->constrain,
-                                                                                ),
-                                                                            )
-                                                                            ?->first();
-
-                                                                            $attributes =  \App\Models\Attribute::where('module', $module->id)
-                                                                                ->where(function ($query) {
-                                                                                    $query->where('type', 'foreignId')
-                                                                                        ->orWhere('type', 'informatic')
-                                                                                        ->orWhere('type', 'doublefk')
-                                                                                        ->orWhere('primary', 'lookup')
-                                                                                        ->orWhere('type', 'fk');
-                                                                                })
-
-                                                                                ->get();
-                                                                    @endphp
-
-                                                                            <div class="input-box child-drop form-constrain mt-2">
-                                                                                <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                    <select class="google-input smodule2 " name="multi[{{ $index }}][source]" required>
-                                                                                        <option value="disabled">disabled</option>
-
-                                                                                        @foreach ($attributes as $key => $value)
-
-                                                                                        @php
-
-                                                                                            $all =  App\Generators\GeneratorUtils::setModelName( explode('_', $value->code)[0] );
-                                                                                            $model =  \App\Models\Module::where('code', App\Generators\GeneratorUtils::singularSnakeCase($all))
-                                                                                            ->orWhere('code', App\Generators\GeneratorUtils::pluralSnakeCase($all))
-                                                                                            ?->first();
-
-                                                                                            @endphp
-
-
-
-                                                                                               <option
-                                                                                               data-id="{{ $model->id }}"
-                                                                                               value="{{$multi->source}}"
-                                                                                               @selected(App\Generators\GeneratorUtils::singularSnakeCase((string)$model->code) == $multi->source)>
-                                                                                               {{ $model->name }}
-                                                                                           </option>;
-
-                                                                                               @endforeach
-
-
-
-                                                                                    </select>
-                                                                                </div></div>
-
-
-                                                                                @php
-                                                                                $module2 = \App\Models\Module::where(
+                                                                                ->orWhere(
                                                                                     'code',
-                                                                                    App\Generators\GeneratorUtils::singularSnakeCase(
-                                                                                        $multi->source,
+                                                                                    App\Generators\GeneratorUtils::pluralSnakeCase(
+                                                                                        $multi->constrain,
                                                                                     ),
                                                                                 )
-                                                                                    ->orWhere(
-                                                                                        'code',
-                                                                                        App\Generators\GeneratorUtils::pluralSnakeCase(
-                                                                                            $multi->source,
-                                                                                        ),
-                                                                                    )
-                                                                                    ?->first();
-                                                                            @endphp
+                                                                                ?->first();
+                                                                        @endphp
 
-                                                                                <div class="input-box  form-constrain mt-2">
-                                                                                    <div class="input-box form-on-update mt-2 form-on-update-foreign">
-                                                                                        @if($module2)
-                                                                                        <select class="google-input cd2" name="multi[{{ $index }}][attribute2]" required>
-                                                                                            @foreach ($module2->fields as $key => $value)
+                                                                        <div
+                                                                            class="input-box child-drop form-constrain mt-2">
+                                                                            <div
+                                                                                class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                @if ($module)
+                                                                                    <select class="google-input "
+                                                                                        name="multi[{{ $index }}][attribute]"
+                                                                                        required>
+                                                                                        @foreach ($module->fields as $key => $value)
                                                                                             <option
                                                                                                 data-id="{{ $value->id }}"
                                                                                                 value="{{ $value->code }}"
-                                                                                                @selected($value->code == $multi->attribute2)>
+                                                                                                @selected($value->code == $multi->attribute)>
                                                                                                 {{ $value->name }}
                                                                                             </option>;
                                                                                         @endforeach
-
-                                                                                        </select>
-                                                                                        @endif
-                                                                                    </div></div>
-
-                                                                            @endif
+                                                                                    </select>
+                                                                                @endif
 
 
+                                                                                @if ($multi->secondary == 'lookprefix' || $multi->secondary == 'looksuffix')
+                                                                                    @php
+                                                                                        $module = \App\Models\Module::where(
+                                                                                            'code',
+                                                                                            App\Generators\GeneratorUtils::singularSnakeCase(
+                                                                                                $multi->constrain,
+                                                                                            ),
+                                                                                        )
+                                                                                            ->orWhere(
+                                                                                                'code',
+                                                                                                App\Generators\GeneratorUtils::pluralSnakeCase(
+                                                                                                    $multi->constrain,
+                                                                                                ),
+                                                                                            )
+                                                                                            ?->first();
 
-                                                                            </div></div>
+                                                                                        $attributes = \App\Models\Attribute::where(
+                                                                                            'module',
+                                                                                            $module->id,
+                                                                                        )
+                                                                                            ->where(function ($query) {
+                                                                                                $query
+                                                                                                    ->where(
+                                                                                                        'type',
+                                                                                                        'foreignId',
+                                                                                                    )
+                                                                                                    ->orWhere(
+                                                                                                        'type',
+                                                                                                        'informatic',
+                                                                                                    )
+                                                                                                    ->orWhere(
+                                                                                                        'type',
+                                                                                                        'doublefk',
+                                                                                                    )
+                                                                                                    ->orWhere(
+                                                                                                        'primary',
+                                                                                                        'lookup',
+                                                                                                    )
+                                                                                                    ->orWhere(
+                                                                                                        'type',
+                                                                                                        'fk',
+                                                                                                    );
+                                                                                            })
 
-                                                                        @endif
+                                                                                            ->get();
+                                                                                    @endphp
+
+                                                                                    <div
+                                                                                        class="input-box child-drop form-constrain mt-2">
+                                                                                        <div
+                                                                                            class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                            <select
+                                                                                                class="google-input smodule2 "
+                                                                                                name="multi[{{ $index }}][source]"
+                                                                                                required>
+                                                                                                <option
+                                                                                                    value="disabled">
+                                                                                                    disabled</option>
+
+                                                                                                @foreach ($attributes as $key => $value)
+                                                                                                    @php
+
+                                                                                                        $all = App\Generators\GeneratorUtils::setModelName(
+                                                                                                            explode(
+                                                                                                                '_',
+                                                                                                                $value->code,
+                                                                                                            )[0],
+                                                                                                        );
+                                                                                                        $model = \App\Models\Module::where(
+                                                                                                            'code',
+                                                                                                            App\Generators\GeneratorUtils::singularSnakeCase(
+                                                                                                                $all,
+                                                                                                            ),
+                                                                                                        )
+                                                                                                            ->orWhere(
+                                                                                                                'code',
+                                                                                                                App\Generators\GeneratorUtils::pluralSnakeCase(
+                                                                                                                    $all,
+                                                                                                                ),
+                                                                                                            )
+                                                                                                            ?->first();
+
+                                                                                                    @endphp
 
 
-                                                                        @if ($multi->primary == 'select')
+
+                                                                                                    <option
+                                                                                                        data-id="{{ $model->id }}"
+                                                                                                        value="{{ $multi->source }}"
+                                                                                                        @selected(App\Generators\GeneratorUtils::singularSnakeCase((string) $model->code) == $multi->source)>
+                                                                                                        {{ $model->name }}
+                                                                                                    </option>;
+                                                                                                @endforeach
+
+
+
+                                                                                            </select>
+                                                                                        </div>
+                                                                                    </div>
+
+
+                                                                                    @php
+                                                                                        $module2 = \App\Models\Module::where(
+                                                                                            'code',
+                                                                                            App\Generators\GeneratorUtils::singularSnakeCase(
+                                                                                                $multi->source,
+                                                                                            ),
+                                                                                        )
+                                                                                            ->orWhere(
+                                                                                                'code',
+                                                                                                App\Generators\GeneratorUtils::pluralSnakeCase(
+                                                                                                    $multi->source,
+                                                                                                ),
+                                                                                            )
+                                                                                            ?->first();
+                                                                                    @endphp
+
+                                                                                    <div
+                                                                                        class="input-box  form-constrain mt-2">
+                                                                                        <div
+                                                                                            class="input-box form-on-update mt-2 form-on-update-foreign">
+                                                                                            @if ($module2)
+                                                                                                <select
+                                                                                                    class="google-input cd2"
+                                                                                                    name="multi[{{ $index }}][attribute2]"
+                                                                                                    required>
+                                                                                                    @foreach ($module2->fields as $key => $value)
+                                                                                                        <option
+                                                                                                            data-id="{{ $value->id }}"
+                                                                                                            value="{{ $value->code }}"
+                                                                                                            @selected($value->code == $multi->attribute2)>
+                                                                                                            {{ $value->name }}
+                                                                                                        </option>;
+                                                                                                    @endforeach
+
+                                                                                                </select>
+                                                                                            @endif
+                                                                                        </div>
+                                                                                    </div>
+                                                                                @endif
+
+
+
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+
+
+                                                                    @if ($multi->primary == 'select')
                                                                         <div class="input-box s-option mt-2">
                                                                             <input type="text"
                                                                                 name="multi[{{ $index }}][select_options]"
@@ -728,9 +871,7 @@
                                                                                 placeholder="Seperate with '|', e.g.: water|fire">
                                                                         </div>
                                                                     @endif
-
-
-                                                            @endif
+                                                                @endif
 
                                                             </div>
                                                         </td>
@@ -912,7 +1053,7 @@
 
 
     <div class="card-footer text-right">
-        <input title="Save attribute" class="btn btn-primary" type="submit"
+        <input title="Save attribute" class="btn btn-primary create-attribute-form-submit" type="submit"
             value="{{ $attribute->id == null ? 'Create' : 'Update' }}">
         <input title="Reset form" class="btn btn-warning" type="reset" value="Reset">
         <a title="Cancel form" href="{{ route('attribute.index') }}" class="btn btn-danger">Cancel</a>

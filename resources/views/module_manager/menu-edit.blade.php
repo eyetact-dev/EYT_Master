@@ -22,6 +22,8 @@
                                         <input type="text" name="name" id="aname" class="form-control"
                                             value="{{ $module->name }}" required>
                                         <input type="hidden" name="id" id="aid" value="">
+                                        <span id="name-update-error"
+                                            class="error text-danger d-none error-message"></span>
                                     </div>
                                 @endif
 
@@ -31,7 +33,8 @@
                                                 class="text-red">*</span></label>
                                         <input type="text" readonly id="aname" class="form-control"
                                             value="{{ $module->code }}">
-
+                                        <span id="code-update-error"
+                                            class="error text-danger d-none error-message"></span>
                                     </div>
                                 @endif
                                 @if (!empty($module->migration))
@@ -40,6 +43,8 @@
                                                 class="text-red">*</span></label>
                                         <input type="text" readonly id="apath" class="form-control"
                                             value="{{ $module->menu->path }}">
+                                        <span id="path-update-error"
+                                            class="error text-danger d-none error-message"></span>
                                     </div>
                                 @endif
 
@@ -48,6 +53,13 @@
                                             class="text-red">*</span></label>
                                     <input type="text" name="sidebar_name" id="sidebar_name" class="form-control"
                                         value="{{ $module->menu->sidebar_name }}" required>
+                                    <!-- send the hidden name because it is required -->
+                                    @if (empty($module->migration))
+                                        <input type="hidden" name="name" value="{{ $module->name }}">
+                                    @endif
+                                    <span id="sidebar_name-update-error"
+                                        class="error text-danger d-none error-message"></span>
+
                                 </div>
 
                                 @if ($module->menu->menu_type == 'admin')

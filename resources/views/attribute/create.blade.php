@@ -3,7 +3,7 @@
     // dump($attribute->name);
 @endphp
 <form action="{{ route('attribute.store') }}" id="attributeCreate" method="POST" autocomplete="off"
-    enctype="multipart/form-data">
+    class="create-attribute-form" enctype="multipart/form-data" novalidate="novalidate">
     @csrf
     <div class="row">
         <div class="col-lg-12 col-md-12">
@@ -16,8 +16,8 @@
                         <div class="col-sm-12 input-box">
                             <label class="form-label" for="module">Add Attribute To<span
                                     class="text-red">*</span></label>
-                            <select name="module" class="google-input module" id="module">
-                                <option value="" selected>Select Module</option>
+                            <select name="module" class="google-input module" id="module" required>
+                                <option value="" selected disabled>Select Module</option>
                                 @foreach ($moduleData as $module)
                                     <option value="{{ $module->id }}"
                                         @if (in_array($module->id, [1, 2, 3])) disabled @endif
@@ -31,16 +31,16 @@
                         <div class="col-sm-12 input-box">
                             <label class="form-label" for="name">Name<span class="text-red">*</span></label>
                             <input type="text" name="name" id="name"
-                                class="google-input @error('name') is-invalid @enderror"
-                                value="{{ old('name', $attribute->name) }}">
+                                class="form-control @error('name') is-invalid @enderror"
+                                value="{{ old('name', $attribute->name) }}" required>
                             <span id="name-error" class="error text-danger d-none error-message"></span>
                         </div>
 
                         <div class="col-sm-12 input-box">
                             <label class="form-label" for="Code">code<span class="text-red">*</span></label>
                             <input type="text" name="code" id="code"
-                                class="input-code google-input @error('code') is-invalid @enderror"
-                                value="{{ old('code', $attribute->code) }}">
+                                class="input-code form-control @error('code') is-invalid @enderror"
+                                value="{{ old('code', $attribute->code) }}" required>
 
                             <span id="code-error" class="error text-danger d-none error-message"></span>
 
@@ -54,8 +54,8 @@
 
                         <div class="input-box col-sm-12 attribute-type-drop-down">
                             <label class="form-label">Select Attribute type<span class="text-red">*</span></label>
-                            <select name="input_types" class="form-select form-input-types  google-input">
-                                <option value="" disabled selected>-- {{ __('Select input type') }}--</option>
+                            <select name="input_types" class="form-select form-input-types  google-input" required>
+                                <option value="" selected disabled>-- {{ __('Select input type') }}--</option>
                                 <option value="multi">Multi Attribute</option>
                                 <option value="text">Text</option>
                                 <option value="textarea">Text Area</option>
@@ -176,7 +176,7 @@
             <div class="row">
                 <div class="col-sm-12 input-box">
                     <label class="form-label" for="source">source<span class="text-red">*</span></label>
-                    <select class="google-input " name="source" id="source">
+                    <select class="google-input " name="source" id="source" required>
                     </select>
                 </div>
 
@@ -256,8 +256,8 @@
 
 
     <div class="card-footer text-right">
-        <input title="Save attribute" class="btn btn-primary" type="submit"
-            value="{{ $attribute->id == null ? 'Create' : 'Update' }}">
+        <input title="Save attribute" class="btn btn-primary create-attribute-form-submit" type="submit"
+            value="{{ $attribute->id == null ? 'Create' : 'Update' }}" disabled>
         <input title="Reset form" class="btn btn-warning" type="reset" value="Reset">
         <a title="Cancel form" href="{{ route('attribute.index') }}" class="btn btn-danger">Cancel</a>
     </div>

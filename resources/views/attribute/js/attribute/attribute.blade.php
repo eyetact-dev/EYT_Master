@@ -18,8 +18,47 @@
           }
       @endif
 
+      /**
+       * DISABLE CREATE ATTRIBUTE UNTIL ENTER ALL THE REQUIRED INPUT FIELD
+       * */
+      $("#role_form_modal").on('shown.bs.modal', function() {
+          // Run validation on keyup and change events
+          $('input[required]').on('keyup change', function() {
+              validateForm('.create-attribute-form', '.create-attribute-form-submit');
+          });
+
+          $('select[required]').on('change', function() {
+              console.log($(this).val());
+              validateForm('.create-attribute-form', '.create-attribute-form-submit');
+
+          });
+          // Initial validation check
+          validateForm('.create-attribute-form', '.create-attribute-form-submit');
+
+      });
+
+      $("#role_form_modal").on('shown.bs.modal', function() {
+          // Run validation on keyup and change events
+          $('input[required]').on('keyup change', function() {
+              validateForm('#attributeCreate', '.create-attribute-form-submit');
+          });
+
+
+          // Initial validation check
+          validateForm('#attributeCreate', '.create-attribute-form-submit');
+
+      });
 
       $(document).ready(function() {
+
+          $(document).on('change', "select[name='input_types']", function() {
+              validateForm('#attributeCreate', '.create-attribute-form-submit');
+          });
+
+          // Validate dynamically added fields as well
+          $(document).on('input', '#attributeCreate input', function() {
+              validateForm('#attributeCreate', '.create-attribute-form-submit');
+          });
           /**
            * THIS ACTION HANDLER IS TO HANDLE THE SUBMIT BUTTON OF CREATE ATTRIBUTE FORM
            */
@@ -54,12 +93,17 @@
                           manageMessageResponse("role_form_modal", response,
                               "success", 3000);
                           $("#attributeCreate")[0].reset();
+                          $('.form-control').removeClass('is-valid');
+                          $('.form-control').removeClass('is-invalid');
                           table.ajax.reload();
                       } else {
                           manageMessageResponse("role_form_modal", response,
                               "danger",
                               3000);
                           $("#attributeCreate")[0].reset();
+
+                          $('.form-control').removeClass('is-valid');
+                          $('.form-control').removeClass('is-invalid');
                       }
                   },
                   error: function(xhr, status, error) {
@@ -69,28 +113,25 @@
                           displayValidationErrorsFields(
                               errors);
                           $("#attributeCreate")[0].reset();
+
+                          $('.form-control').removeClass('is-valid');
+                          $('.form-control').removeClass('is-invalid');
                       } else {
-                          manageMessageResponse("role_form_modal", response.message, "danger",
-                              3000);
+
+
+                          manageMessageResponse("role_form_modal", response.message,
+                              "danger", 3000);
                           $("#attributeCreate")[0].reset();
+
+                          $('.form-control').removeClass('is-valid');
+                          $(
+                              '.form-control').removeClass('is-invalid');
                       }
                   }
               });
 
 
           });
-
-          //   /**
-          //    * THIS ACTION HANDLER IS TO HANDLE THE SUBMIT BUTTON OF EDIT ATTRIBUTE FORM 
-          //    */
-
-          //   $('#edit-attribute').submit(function(e) {
-          //       e.preventDefault(); // Prevent default form submission
-          //       alert("hi");
-
-
-
-          //   });
 
 
       });
