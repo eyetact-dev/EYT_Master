@@ -29,6 +29,10 @@ function displayValidationErrorsFields(errors, formType) {
 
     $.each(errors, function (key, value) {
         var errorSpan = $("#" + key + "-error");
+
+        // replae the key in the error if they contained . (i.e mult.1.name)
+        var errorSpanId = key.replace(/\./g, "_") + "-error";
+        var errorSpan = $("#" + errorSpanId);
         if (errorSpan.length) {
             errorSpan.html(value[0]);
             errorSpan.removeClass("d-none");

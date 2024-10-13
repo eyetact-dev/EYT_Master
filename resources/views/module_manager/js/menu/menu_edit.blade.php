@@ -78,16 +78,29 @@
                   success: function(response) {
 
                       if (response.status == true) {
-                          console.log(response.data.menu_type);
-                          //$('#' + response.data.menu_type + "-" + response.data.id).hide();
                           $('#' + response.data.menu_type + "-" + response.data.id).find(
                               '.dd-handle').text(response.data.name);
                           toastr.success(response.message, "Success");
-                      } else
+
+                          // empty the error messages from
+                          $('.error-message').html('');
+                      } else {
+
                           toastr.error(response.message, "Error");
+                      }
+
                   },
                   error: function(xhr, status, error) {
-                      toastr.error(error, "Error");
+                      if (xhr.status === 422) {
+
+                          var errors = xhr.responseJSON.errors;
+                          displayValidationErrorsFields(
+                              errors, 'update');
+                          $("#mailboxForm")[0].reset();
+
+
+                      } else
+                          toastr.error(error, "Error");
                   }
               });
 

@@ -37,13 +37,24 @@
                 validateForm('.add-label-form', '.admin-label-form-submit');
             });
 
-            // // Initial validation check
-            // validateForm('.add-label-form', '.admin-label-form-submit');
+            // Initial validation check
+            validateForm('.add-label-form', '.admin-label-form-submit');
 
         });
 
 
         $("#FrontForm").on('shown.bs.modal', function() {
+            // remove the highlighting of the input field
+            $('.form-control').removeClass('is-valid');
+            $('.form-control').removeClass('is-invalid');
+
+            // remove error messages came from server validation
+            $('.error-message').html('');
+
+            // remove error message came from client validation
+            $('.invalid-feedback.is-invalid.d-block').html('');
+            $('.storefront-form')[0].reset();
+
             // Run validation on keyup and change events
             $('input[required]').on('keyup change', function() {
                 validateForm('.storefront-form', '.store-front-form-submit');
@@ -92,6 +103,15 @@
                         notEqual3: 'iD',
                         notEqual4: 'Id',
                     },
+                    name: {
+                        required: true,
+                    },
+                    path: {
+                        required: true,
+                    },
+                    sidebar_name: {
+                        required: true,
+                    }
 
                 },
                 messages: {},
@@ -106,6 +126,9 @@
                 unhighlight: function(element) {
                     $(element).removeClass('is-invalid');
                     $(element).addClass('is-valid');
+
+                    // empty the invliad input error message
+                    $('.error-message').html('');
                 },
             });
         });
@@ -144,6 +167,9 @@
                 unhighlight: function(element) {
                     $(element).removeClass('is-invalid');
                     $(element).addClass('is-valid');
+
+                    // empty the invliad input error message
+                    $('.error-message').html('');
                 },
             });
         });
@@ -182,6 +208,9 @@
                 unhighlight: function(element) {
                     $(element).removeClass('is-invalid');
                     $(element).addClass('is-valid');
+
+                    // empty the invliad input error message
+                    $('.error-message').html('');
                 },
             });
         });
@@ -224,12 +253,25 @@
                             "success", 3000, '.storefront-form', '');
                         addNewStoreFrontModuleElementToList(response.data, "storfront");
 
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
+                        // empty the validation error message from the span
+                        $('.error-message').html('');
+
+
                     } else {
 
                         manageMessageResponse("FrontForm", "storfront", response,
                             "danger",
                             3000), '.storefront-form';
                         addNewStoreFrontModuleElementToList(response.data, "storfront");
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
+
+
                     }
                 },
                 error: function(xhr, status, error) {
@@ -240,10 +282,21 @@
                         displayValidationErrorsFields(
                             errors, 'storefront');
                         $(".storefront-form")[0].reset();
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
+
+
                     } else {
 
                         manageMessageResponse("FrontForm", response.message, "danger",
                             3000, '.storefront-form');
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
+
                     }
                 }
             });
@@ -284,11 +337,19 @@
                             3000, '.admin-form');
                         addNewStoreFrontModuleElementToList(response.data, "admin");
 
+                        // disable the input validation highlights
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
+
                     } else {
                         manageMessageResponse("addMenuLabel", response,
                             "danger",
                             3000, '.admin-form');
                         addNewStoreFrontModuleElementToList(response.data, "admin");
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
                     }
 
                 },
@@ -300,11 +361,18 @@
                         displayValidationErrorsFields(
                             errors, 'admin');
                         $(".admin-form")[0].reset();
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
                     } else {
 
                         manageMessageResponse("addMenuLabel", response.message,
                             "danger",
                             3000, '.admin-form');
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
                     }
                 }
             });
@@ -339,12 +407,19 @@
                             3000, '.add-label-form');
                         manageLabelCreationResponse(response.message);
                         addLabelElementToList(response.data);
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
                     } else {
                         manageMessageResponse("addMenuLabel", response,
                             "danger",
                             3000, '.add-label-form');
                         manageLabelCreationResponse(response.data);
                         addLabelElementToList(response.data);
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
                     }
 
 
@@ -357,12 +432,19 @@
                         displayValidationErrorsFields(
                             errors, 'label');
                         $(".add-label-form")[0].reset();
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
+
                     } else {
                         manageMessageResponse("addMenuLabel", response,
                             "danger",
                             3000, '.add-label-form');
                         manageLabelCreationResponse(response.data);
                         addLabelElementToList(response.data);
+
+                        $('.form-control').removeClass('is-valid');
+                        $('.form-control').removeClass('is-invalid');
 
                     }
                 }

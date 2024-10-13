@@ -997,10 +997,47 @@
             })
 
 
+            $("#addMenuLabel").on('hidden.bs.modal', function() {
+                // uncheck all the checked switches
+                $('#label').prop('checked', false);
+                $('#sub').prop('checked', false);
+                $('#shared').prop('checked', false);
+                $('#addable').prop('checked', false);
+
+                // show all the forms available (main form + label + sub)
+                $('.main-form').show();
+                $('.label-con').show();
+                $('.sub-con').show();
+
+                $('.added').hide();
+                // empty the input fields from (admin, label, sub)
+                $('.admin-form')[0].reset();
+                $('.add-label-form')[0].reset();
+                $('#moduleCreateSub')[0].reset();
+
+            });
             $("#addMenuLabel").on('shown.bs.modal', function() {
+                // remove all highlighting
+                $('.form-control').removeClass('is-valid');
+                $('.form-control').removeClass('is-invalid');
+
+                // remove error messages came from server validation
+                $('.error-message').html('');
+
+                // remove error message came from client validation
+                $('.invalid-feedback.is-invalid.d-block').html('');
+
+                // return the switch buttons to the default
+                // $('#admin_form')[0].reset(); // Reset form fields including checkboxes
+                // $('#label').prop('checked', false);
+                // $('#sub').prop('checked', false);
+
+
 
                 $('.label-form').hide();
                 $('.sub-form').hide();
+
+
 
 
                 $("#label").on('change', function() {
@@ -1388,25 +1425,6 @@
                 }
             });
 
-            $('#admin_form').validate({
-                rules: {
-                    module: {
-                        required: true,
-                    },
-                    name: {
-                        required: true,
-                    },
-                    code: {
-                        required: true,
-                    },
-                    path: {
-                        required: true,
-                    },
-                    created_date: {
-                        required: true,
-                    }
-                }
-            });
 
             // $("#moduleCreateSub").on("submit", function(event) {
             //     if ($('#attr_id').val() <= 0) {

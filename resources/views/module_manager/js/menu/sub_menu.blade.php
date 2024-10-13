@@ -58,6 +58,9 @@
                   unhighlight: function(element) {
                       $(element).removeClass('is-invalid');
                       $(element).addClass('is-valid');
+
+                      // empty the invliad input error message
+                      $('.error-message').html('');
                   },
               });
           });
@@ -109,6 +112,9 @@
                               manageSubModuleCreationResponse(response.message);
                               addNewStoreFrontModuleElementToList(response.data, "admin");
 
+                              $('.form-control').removeClass('is-valid');
+                              $('.form-control').removeClass('is-invalid');
+
 
                           } else {
                               manageMessageResponse("addMenuLabel", response,
@@ -117,7 +123,8 @@
                               manageSubModuleCreationResponse(response.message);
                               addNewStoreFrontModuleElementToList(response.data, "admin");
 
-
+                              $('.form-control').removeClass('is-valid');
+                              $('.form-control').removeClass('is-invalid');
                           }
                       },
                       error: function(xhr, status, error) {
@@ -129,6 +136,9 @@
 
                               manageSubModuleCreationResponse(response.message);
                               $("#moduleCreateSub")[0].reset();
+
+                              $('.form-control').removeClass('is-valid');
+                              $('.form-control').removeClass('is-invalid');
                           } else {
 
                               manageMessageResponse("addMenuLabel", response.message,
@@ -136,6 +146,9 @@
                                   3000);
                               manageSubModuleCreationResponse(response.message);
                               $("#moduleCreateSub")[0].reset();
+
+                              $('.form-control').removeClass('is-valid');
+                              $('.form-control').removeClass('is-invalid');
                           }
                       }
                   });

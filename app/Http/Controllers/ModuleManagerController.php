@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use App\Generators\GeneratorUtils;
+use App\Http\Requests\ModuleManagerRequest\UpdateModuleManagerRequest;
 use App\Http\Requests\postLabelRequest;
 use App\Http\Requests\storeSubPostRequest;
 use Exception;
@@ -336,9 +337,8 @@ class ModuleManagerController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateModuleManagerRequest $request, $id)
     {
-
         $module = Module::find($id);
 
         if (!empty($request->name)) :

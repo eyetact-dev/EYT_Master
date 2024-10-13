@@ -22,10 +22,14 @@ class UpdateAttributeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $attribute = $this->route(param: 'attribute');
         return [
-            'name' => ['required', Rule::unique('attributes')->where(function ($query) {
-                return $query->where('module', $this->module);
-            })],
+            'name' => [
+                'required',
+                Rule::unique('attributes')->where(function ($query) {
+                    return $query->where('module', $this->module);
+                })->ignore($attribute->id)
+            ],
         ];
     }
 }

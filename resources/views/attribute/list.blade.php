@@ -157,6 +157,10 @@
     <!-- INTERNAL Select2 js -->
     <script src="{{ URL::asset('assets/plugins/select2/select2.full.min.js') }}"></script>
 
+    <!--   USER INTERACTIVE JS -->
+    <script src="{{ URL::asset('assets/js/user interactive/userInteractiveForms.js') }}"></script>
+
+
     <script type="text/javascript">
         $(document).on('click', '#edit_item', function() {
             // window.addEventListener('load', function() {
@@ -354,6 +358,8 @@
                                                     <input type="text" name="multi[${no}][name]"
                                                         class="form-control google-input field-name"
                                                         placeholder="{{ __('Field Name') }}" required>
+                                                        <!-- error messages -->
+                                                        <span id="multi[${no}][name]-error" class="error text-danger d-none error-message"></span>
                                                 </div>
                                             </td>
                                             <td>
@@ -387,7 +393,8 @@
                                                     </select>
 
                                                 </div>
-                                                <div class="select_options"></div>
+                                                <div class="select_options">
+                                                    </div>
                                             </td>
 
 
@@ -906,6 +913,7 @@ ${response}
 
                         parent.append(` <div class="input-box child-drop based-cond form-constrain mt-2">
 <div class="input-box form-on-update mt-2 form-on-update-foreign">
+    <label class="form-label" for="attribute2">linked attribute<span class="text-red">*</span></label>
     <select class="google-input " name="attribute2" required>
        ${response}
     </select>
@@ -1014,6 +1022,7 @@ ${response}
                         $(`.options`).append(`
     <div class="input-box form-constrain fkey2 mt-2">
         <div class="input-box form-on-update mt-2 form-on-update-foreign">
+            <label class="form-label" for="constrains2">module to link over<span class="text-red">*</span></label>
             <select class="google-input lookup-drop2"  name="constrains2" required>
                ${response}
             </select>
@@ -1046,6 +1055,7 @@ ${response}
 
                     parent.append(` <div class="input-box child cond2-wrapper form-constrain mt-2">
                     <div class="input-box form-on-update mt-2 form-on-update-foreign">
+                                            <label class="form-label" for="condition_value[]">values to link over<span class="text-red">*</span></label>
                         <select class="google-input " name="condition_value[]" required multiple>
                            ${response}
                         </select>
@@ -1119,8 +1129,8 @@ ${response}
                     <div class="col-sm-12 input-box fixed-val">
                             <label class="form-label" for="fixed_value">Fixed value<span class="text-red">*</span></label>
                             <input type="text" name="multi[${index}][fixed_value]" id="fixed_value"
-                                class="google-input @error('fixed_value') is-invalid @enderror"
-                                value="">
+                                class="form-control @error('fixed_value') is-invalid @enderror"
+                                value="" required>
                             @error('fixed_value')
                                 <span class="error name-error">{{ $message }}</span>
                             @enderror
@@ -1517,17 +1527,23 @@ ${response}
                                             <td>
                                                 <div class="input-box">
                                                     <input type="text" name="multi[1][name]"
-                                                        class="form-control google-input field-name"
+                                                        class="form-control form-control field-name"
                                                         placeholder="{{ __('Field Name') }}" required>
+                                                         <!-- error messages -->
+                                                        <span id="multi_1_name-error" class="error text-danger d-none error-message"></span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="input-box">
                                                     <select name="multi[1][type]"
-                                                        class="form-select  google-input multi-type" required>
+                                                        class="form-select  form-control multi-type" required>
                                                         <option value="" disabled selected>
                                                             --{{ __('Select column type') }}--
                                                         </option>
+
+                                                        <!--error message -->
+                                                        <span id="multi.1.type-error" class="error text-danger d-none error-message"></span>
+
                                                         <option value="text">Text</option>
                                                         <option value="text">Letters (a-z, A-Z) or Numbers (0-9)</option>
                                                         <option value="textarea">Text Area</option>
@@ -1549,7 +1565,8 @@ ${response}
 
                                                     </select>
                                                 </div>
-                                                <div class="select_options"></div>
+                                                <div class="select_options">
+                                                </div>
                                             </td>
 
 
@@ -1901,8 +1918,8 @@ ${response}
                     <div class="col-sm-12 input-box fixed-val">
                             <label class="form-label" for="fixed_value">Fixed value<span class="text-red">*</span></label>
                             <input type="text" name="fixed_value" id="fixed_value"
-                                class="google-input @error('fixed_value') is-invalid @enderror"
-                                value="">
+                                class="form-control @error('fixed_value') is-invalid @enderror"
+                                value="" required>
                             @error('fixed_value')
                                 <span class="error name-error">{{ $message }}</span>
                             @enderror
@@ -2777,7 +2794,7 @@ ${response}
             </div>
             <div class="input-box form-file-sizes">
             <label class="form-label" for="files_sizes">file size<span class="text-red">*</span></label>
-                <input type="number" name="files_sizes" class="google-input" placeholder="Max size(kb), e.g.: 1024" required>
+                <input type="number" name="files_sizes" class="form-control files_sizes" placeholder="Max size(kb), e.g.: 1024" required>
             </div>
             <input type="hidden" name="mimes" class="form-mimes">
 
@@ -2799,7 +2816,7 @@ ${response}
             </div>
             <div class="input-box form-file-sizes">
             <label class="form-label" for="files_sizes">file size<span class="text-red">*</span></label>
-                <input type="number" name="files_sizes" class="google-input" placeholder="Max size(kb), e.g.: 1024" required>
+                <input type="number" name="files_sizes" class="form-control files_sizes" placeholder="Max size(kb), e.g.: 1024" required>
             </div>
             <input type="hidden" name="mimes" class="form-mimes">
             <input type="hidden" name="steps" class="form-step">
@@ -2945,7 +2962,7 @@ ${response}
                 index + ')" class="m-input mr-2"><input type="hidden" value="0" id="fields_info[' + index +
                 '][default]" name="fields_info[' + index +
                 '][default]"></td><td><input type="text" name="fields_info[' + index +
-                '][value]" class="form-control m-input mr-2"  autocomplete="off"></td><td><button type="button" class="btn btn-danger removeSection"><i class="fa fa-trash"></i></button></td></tr>';
+                '][value]" class="form-control m-input mr-2"  autocomplete="off" required></td><td><button type="button" class="btn btn-danger removeSection"><i class="fa fa-trash"></i></button></td></tr>';
             $('.option_fields tbody').append(html);
 
         });
@@ -2983,13 +3000,23 @@ ${response}
         $(document).on('change', '#attributeCreate', function() {
             $("#attributeCreate").validate({
                 onkeyup: function(el, e) {
-
                     $(el).valid();
                 },
+
                 errorClass: "invalid-feedback is-invalid",
                 validClass: 'valid-feedback is-valid',
                 ignore: ":hidden",
                 rules: {
+                    module: {
+                        required: true,
+                    },
+                    name: {
+                        required: true,
+                    },
+
+                    input_types: {
+                        required: true,
+                    },
 
                     code: {
                         required: true,
@@ -2999,9 +3026,22 @@ ${response}
                         notEqual3: 'iD',
                         notEqual4: 'Id',
                     },
+                },
+                messages: {
+                    module: {
+                        required: "Please select a module."
+                    },
+                    name: {
+                        required: "Please enter the name." // You need to define the message for "required"
+                    },
+                    code: {
+                        required: "Please enter the code."
+                    },
+                    input_types: {
+                        required: "Please select an input type."
+                    }
 
                 },
-                messages: {},
                 /*the following lines are for inserting the error message under the code input field*/
                 errorPlacement: function(error, element) {
                     error.addClass('d-block');
@@ -3013,7 +3053,10 @@ ${response}
                 unhighlight: function(element) {
                     $(element).removeClass('is-invalid');
                     $(element).addClass('is-valid');
+
+                    $('.error-message').html('');
                 },
+
             });
         });
     </script>
