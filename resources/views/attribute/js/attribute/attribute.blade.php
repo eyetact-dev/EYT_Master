@@ -51,14 +51,14 @@
 
       $(document).ready(function() {
 
-          $(document).on('change', "select[name='input_types']", function() {
-              validateForm('#attributeCreate', '.create-attribute-form-submit');
-          });
+          $(document).on("input change", "#role_form_modal input[required], #role_form_modal select[required]",
+              function() {
+                  validateForm("#attributeCreate", ".create-attribute-form-submit");
+              }
+          );
 
-          // Validate dynamically added fields as well
-          $(document).on('input', '#attributeCreate input', function() {
-              validateForm('#attributeCreate', '.create-attribute-form-submit');
-          });
+          // Initial validation run to ensure the button is disabled if needed
+          validateForm("#attributeCreate", ".create-attribute-form-submit");
           /**
            * THIS ACTION HANDLER IS TO HANDLE THE SUBMIT BUTTON OF CREATE ATTRIBUTE FORM
            */
@@ -117,9 +117,9 @@
                           $('.form-control').removeClass('is-valid');
                           $('.form-control').removeClass('is-invalid');
                       } else {
+                          alert(response.message);
 
-
-                          manageMessageResponse("role_form_modal", response.message,
+                          manageMessageResponse("role_form_modal", response,
                               "danger", 3000);
                           $("#attributeCreate")[0].reset();
 
