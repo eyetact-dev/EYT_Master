@@ -84,7 +84,7 @@ class CategoryController extends ApiController
             $categories = collect([]);
 
             if ($machine) {
-                $components = json_decode($machine->machin_component);
+                $components = json_decode($machine->machine_component);
                 $componentIds = collect($components)->pluck('id');
 
                 foreach ($componentIds as $compoId) {
@@ -115,7 +115,7 @@ class CategoryController extends ApiController
         $machine = Machine::find($request->machine_id);
 
 
-        $products =  Product::where('machine_machine_model_id',$machine->id)->where('category_cat_name_id',$request->category_id)->get();
+        $products =  Product::where('machine_machine_model_id',$machine->id)->where('category_name_id',$request->category_id)->get();
 
         return $this->returnData('data', ProductResource::collection($products), __('Get successfully'));
 

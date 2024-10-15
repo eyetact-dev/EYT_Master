@@ -65,7 +65,7 @@ class ProductResource extends JsonResource
             }
 
             // Determine component data
-            if ($component->compo_carrier == 1) {
+            if ($component->component_carrier == 1) {
                 $componentData = [
                     'unit' => '%',
                     'minimum' => '0',

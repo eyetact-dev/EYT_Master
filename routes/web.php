@@ -393,7 +393,7 @@ Route::get('/get-categories-by-machine/{id}', function ($id) {
             $categories = collect([]);
 
             if ($machine) {
-                $components = json_decode($machine->machin_component);
+                $components = json_decode($machine->machine_component);
                 $componentIds = collect($components)->pluck('id');
 
                 foreach ($componentIds as $compoId) {
@@ -541,10 +541,10 @@ Route::get('/get-blend-and-dose-by-mix/{id}/{machine_id}', function ($id, $machi
             if ($blendItem['id'] == 6) {
                 $isExist = true;
             } else {
-                $compolists = App\Models\Admin\Compolist::where('component_compo_name_id', $blendItem['id'])->get();
+                $compolists = App\Models\Admin\Compolist::where('component_name_id', $blendItem['id'])->get();
 
                 foreach ($compolists as $compolist) {
-                    $machinecompo = App\Models\Admin\Machinecompo::where('machine_machine_serial_id', $machineId)
+                    $machinecompo = App\Models\Admin\Machinecompo::where('machine_serial_number_id', $machineId)
                         ->where('machine_compo_code', $compolist->compo_code)
                         ->first();
 
@@ -617,7 +617,7 @@ Route::get('/get-components-by-machine/{id}', function ($id) {
         $components = collect([]);
 
         if ($machine) {
-            $compos = json_decode($machine->machin_component);
+            $compos = json_decode($machine->machine_component);
             $componentIds = collect($compos)->pluck("id");
 
 
@@ -629,11 +629,11 @@ Route::get('/get-components-by-machine/{id}', function ($id) {
                 if ($component) {
 
 
-                    $compolists = App\Models\Admin\Compolist::where('component_compo_name_id', $componentId)->get();
+                    $compolists = App\Models\Admin\Compolist::where('component_name_id', $componentId)->get();
                     $isExist = false;
 
                     foreach ($compolists as $compolist) {
-                        $machinecompo = App\Models\Admin\Machinecompo::where('machine_machine_serial_id', $machineId)
+                        $machinecompo = App\Models\Admin\Machinecompo::where('machine_serial_number_id', $machineId)
                             ->where('machine_compo_code', $compolist->compo_code)
                             ->first();
 
@@ -1023,7 +1023,7 @@ Route::get('/get-minmax-unit/{component_id}', function ($component_id) {
 
 
 
-        if(  $component->compo_carrier == 1){
+        if(  $component->component_carrier == 1){
 
 
 

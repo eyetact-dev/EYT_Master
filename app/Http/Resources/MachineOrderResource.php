@@ -40,7 +40,7 @@ class MachineOrderResource extends JsonResource
         $machine = Machine::find($request->machine_id);
         $main = MainPart::find($machine->main_part_main_code_id);
         $supplys = collect(json_decode($main->supply_engine));
-        $compos = collect(json_decode($machine->machin_component));
+        $compos = collect(json_decode($machine->machine_component));
         $componentIds = $compos->pluck("id");
 
         $index = 1;
@@ -69,13 +69,13 @@ class MachineOrderResource extends JsonResource
 
 
 
-                    if ($componentId == 6) {
+                    if ($componentId == 7) {
                                 $isExist = true;
                             } else {
-                                $compolists = Compolist::where('component_compo_name_id', $componentId)->get();
+                                $compolists = Compolist::where('component_name_id', $componentId)->get();
 
                                 foreach ($compolists as $compolist) {
-                                    $machinecompo = Machinecompo::where('machine_machine_serial_id', $request->machine_id)
+                                    $machinecompo = Machinecompo::where('machine_serial_number_id', $request->machine_id)
                                         ->where('machine_compo_code', $compolist->compo_code)
                                         ->first();
 
@@ -171,14 +171,14 @@ class MachineOrderResource extends JsonResource
         }
      }
 
-        if ($main->main_software == "Standard") {
+        if ($main->software_type == "Standard") {
             foreach ($response as &$component) {
                 if ($component['isExist']) { // Calculate only if isExist is true
                 $component['voltageVolume'] = number_format($component['runningVoltage'], 3);
                 $component['timeVoltage'] = (integer)(($component['volume'] / $component['flowRate']) * 60000);
             }
         }
-    }elseif ($main->main_software == "PWM") {
+    }elseif ($main->software_type == "PWM") {
             $delays = array_column(array_slice($response, 1), 'delay');
             $maxDelay = count($delays) > 0 ? max($delays) : 0;
 
