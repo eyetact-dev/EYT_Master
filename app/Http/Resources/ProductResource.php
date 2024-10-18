@@ -37,7 +37,7 @@ class ProductResource extends JsonResource
             $isExist = false;
 
             // Check if component exists
-            if ($blendItem['id'] == 6) {
+            if ($blendItem['id'] == 7) {
                 $isExist = true;
             } else {
                 $compolists = Compolist::where('component_name_id', $blendItem['id'])->get();
@@ -107,6 +107,12 @@ class ProductResource extends JsonResource
             $blendItem['componentData'] = $componentData;
         }
 
+
+
+        // Retrieve outlet information
+        $machine = Machine::find($this->machine_machine_model_id);
+        $outlet = $machine ? json_decode($machine->outlet, true) : null;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -116,6 +122,7 @@ class ProductResource extends JsonResource
             'target' => $this->target,
             'recommended_use' => $this->recommended_use,
             'components' => $blend,
+            'outlet' => $outlet,
         ];
     }
 
