@@ -281,6 +281,7 @@ public function createMachineOrder(Request $request) {
     }
 
     $machineOrder->blend = $blend;
+    $machineOrder->outlet = $request->outlet;
     $machineOrder->save();
 
     return $this->returnData('data', new MachineOrderResource($machineOrder), __('Get successfully'));
