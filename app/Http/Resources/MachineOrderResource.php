@@ -265,7 +265,7 @@ class MachineOrderResource extends JsonResource
             // 'blend' => json_decode($this->blend),
             'components' => $response,
             'dose' => $this->dose,
-
+            'outlet' => $this->outlet,
         ];
 
 

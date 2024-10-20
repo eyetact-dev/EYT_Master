@@ -79,16 +79,17 @@ class CategoryController extends ApiController
 
     public function getCategoriesByMachine(Request $request)
     {
+        $machine = Machine::find($request->machine_id);
+        $categories = collect([]);
 
-            $machine = Machine::find($request->machine_id);
-            $categories = collect([]);
+        if ($machine) {
+            $components = json_decode($machine->machine_component);
+            $componentIds = collect($components)->pluck('id');
 
-            if ($machine) {
-                $components = json_decode($machine->machine_component);
-                $componentIds = collect($components)->pluck('id');
+            foreach ($componentIds as $compoId) {
+                $component = Component::find($compoId);
 
-                foreach ($componentIds as $compoId) {
-                    $component = Component::find($compoId);
+                if ($component) { // Check if component is not null
                     $compo_category = json_decode($component->compo_category, true);
                     $compo_category_collection = collect($compo_category)->pluck('id');
 
@@ -99,14 +100,13 @@ class CategoryController extends ApiController
                         }
                     }
                 }
-                // dd($categories);
-
-                return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
             }
 
+            return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
+        }
 
-
-
+        // Optionally return a response if the machine is not found
+        return response()->json(['message' => __('Machine not found')], 404);
     }
 
 
