@@ -538,7 +538,7 @@ Route::get('/get-blend-and-dose-by-mix/{id}/{machine_id}', function ($id, $machi
         foreach ($blend as &$blendItem) {
             $isExist = false;
 
-            if ($blendItem['id'] == 6) {
+            if ($blendItem['id'] == 7) {
                 $isExist = true;
             } else {
                 $compolists = App\Models\Admin\Compolist::where('component_name_id', $blendItem['id'])->get();
@@ -649,7 +649,7 @@ Route::get('/get-components-by-machine/{id}', function ($id) {
                     $component->isExist = $isExist;
 
 
-                    if($component->id == 6){
+                    if($component->id == 7){
 
                         $component->isExist = true;
 
