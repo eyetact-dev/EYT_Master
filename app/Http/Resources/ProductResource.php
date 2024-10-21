@@ -37,7 +37,7 @@ class ProductResource extends JsonResource
             $isExist = false;
 
             // Check if component exists
-            if ($blendItem['id'] == 7) {
+            if ($blendItem['id'] == 19) {
                 $isExist = true;
             } else {
                 $compolists = Compolist::where('component_name_id', $blendItem['id'])->get();

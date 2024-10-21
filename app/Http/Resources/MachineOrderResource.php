@@ -69,7 +69,7 @@ class MachineOrderResource extends JsonResource
 
 
 
-                    if ($componentId == 7) {
+                    if ($componentId == 19) {
                                 $isExist = true;
                             } else {
                                 $compolists = Compolist::where('component_name_id', $componentId)->get();
