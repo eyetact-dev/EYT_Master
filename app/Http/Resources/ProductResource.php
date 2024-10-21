@@ -32,15 +32,37 @@ class ProductResource extends JsonResource
 
 
         $blend = $this->blend ? json_decode($this->blend, true) : [];
+        $machine = Machine::find($this->machine_machine_model_id);
+$main = MainPart::find($machine->main_part_main_code_id);
+$supplys = collect(json_decode($main->supply_engine));
+$compos = collect(json_decode($machine->machine_component));
+$componentIds = $compos->pluck("id");
 
-        foreach ($blend as &$blendItem) {
-            $isExist = false;
+$response = [];
+$index = 1; // Initialize index
 
+foreach ($blend as $mcomponent) {
+    $componentId = $mcomponent['id'];
+    $componentIndex = null;
+    $isExist = false; // Initialize isExist
+
+    // Find the component index
+    foreach ($compos as $i => $component) { // Use $i to find the index
+        if ($component->id == $componentId) {
+            $componentIndex = $i;
+            break;
+        }
+    }
+
+    if ($componentIndex !== null && isset($supplys[$componentIndex])) {
+        $supply = SupplyEngine::find($supplys[$componentIndex]->id);
+
+        if ($supply !== null) {
             // Check if component exists
-            if ($blendItem['id'] == 19) {
+            if ($componentId == 19) {
                 $isExist = true;
             } else {
-                $compolists = Compolist::where('component_name_id', $blendItem['id'])->get();
+                $compolists = Compolist::where('component_name_id', $componentId)->get();
 
                 foreach ($compolists as $compolist) {
                     $machinecompo = Machinecompo::where('machine_serial_number_id', $request->machine_id)
@@ -54,11 +76,8 @@ class ProductResource extends JsonResource
                 }
             }
 
-            // Add isExist to blend item
-            $blendItem['isExist'] = $isExist;
-
             // Fetch the component
-            $component = Component::find($blendItem['id']);
+            $component = Component::find($componentId);
 
             if (!$component) {
                 return $this->returnError(__('Component not found!'));
@@ -103,32 +122,41 @@ class ProductResource extends JsonResource
                 }
             }
 
-            // Add component data to blend item
-            $blendItem['componentData'] = $componentData;
+            // Add component data to response
+            $response[] = [
+                'index' => $componentIndex, // Add component index
+                'componentId' => $componentId,
+                'component' => $component->name, // Add component name
+                'value' => $mcomponent['value'], // Add value
+                'unit' => $mcomponent['unit'], // Add unit
+                'volume' => $mcomponent['volume'], // Add volume
+                'componentData' => $componentData,
+                'isExist' => $isExist,
+            ];
         }
-
-
-
-        // Retrieve outlet information
-        $machine = Machine::find($this->machine_machine_model_id);
-        $outlet = $machine ? json_decode($machine->outlet, true) : null;
-
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'dose' => $this->dose,
-            'unit' => $this->unit,
-            'price' => $this->price,
-            'target' => $this->target,
-            'recommended_use' => $this->recommended_use,
-            'components' => $blend,
-            'outlet' => $outlet,
-        ];
     }
-
 }
 
+// Retrieve outlet information
+$outlet = $machine ? json_decode($machine->outlet, true) : null;
 
+return [
+
+        'id' => $this->id,
+        'name' => $this->name,
+        'dose' => $this->dose,
+        'unit' => $this->unit,
+        'price' => $this->price,
+        'target' => $this->target,
+        'recommended_use' => $this->recommended_use,
+        'components' => $response, // Return the response array
+        'outlet' => $outlet,
+
+];
+
+
+    }
+}
 
     //     $mixture = Product::find($this->id);
     //     $mixtureData = collect(json_decode($mixture->blend));
