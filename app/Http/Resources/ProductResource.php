@@ -40,6 +40,7 @@ $componentIds = $compos->pluck("id");
 
 $response = [];
 $index = 1; // Initialize index
+$isAvailable = true; // Initialize isAvailable
 
 foreach ($blend as $mcomponent) {
     $componentId = $mcomponent['id'];
@@ -75,6 +76,13 @@ foreach ($blend as $mcomponent) {
                     }
                 }
             }
+
+
+               // If any component is not present, set isAvailable to false
+               if (!$isExist) {
+                $isAvailable = false;
+            }
+
 
             // Fetch the component
             $component = Component::find($componentId);
@@ -151,6 +159,7 @@ return [
         'recommended_use' => $this->recommended_use,
         'components' => $response, // Return the response array
         'outlet' => $outlet,
+        'isAvailable' => $isAvailable, // Add isAvailable key
 
 ];
 
