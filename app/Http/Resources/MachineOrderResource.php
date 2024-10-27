@@ -266,6 +266,7 @@ class MachineOrderResource extends JsonResource
             'components' => $response,
             'dose' => $this->dose,
             'outlet' => $this->outlet,
+            'max_delay' => (integer)$maxDelay, // Added max_delay key
         ];
 
 
