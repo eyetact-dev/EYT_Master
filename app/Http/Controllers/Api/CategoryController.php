@@ -117,6 +117,12 @@ class CategoryController extends ApiController
 
         $products =  Product::where('machine_machine_model_id',$machine->id)->where('category_name_id',$request->category_id)->where('enable',1)->get();
 
+
+
+    if ($products->isEmpty()) {
+        return $this->returnSuccessMessage([]);
+    }
+
         return $this->returnData('data', ProductResource::collection($products), __('Get successfully'));
 
     }
