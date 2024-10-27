@@ -66,9 +66,12 @@ foreach ($blend as $mcomponent) {
                 $compolists = Compolist::where('component_name_id', $componentId)->get();
 
                 foreach ($compolists as $compolist) {
-                    $machinecompo = Machinecompo::where('machine_serial_number_id', $request->machine_id)
+                    $machinecompo = Machinecompo::where('machine_serial_number_id', $this->machine_machine_model_id)
                         ->where('machine_compo_code', $compolist->compo_code)
                         ->first();
+
+                        // dd(  $machinecompo);
+
 
                     if ($machinecompo) {
                         $isExist = true;
