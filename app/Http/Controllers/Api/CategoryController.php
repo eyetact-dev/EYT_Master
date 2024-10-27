@@ -77,35 +77,61 @@ class CategoryController extends ApiController
     }
 
 
+    // public function getCategoriesByMachine(Request $request)
+    // {
+    //     $machine = Machine::find($request->machine_id);
+    //     $categories = collect([]);
+
+    //     if ($machine) {
+    //         $components = json_decode($machine->machine_component);
+    //         $componentIds = collect($components)->pluck('id');
+
+    //         foreach ($componentIds as $compoId) {
+    //             $component = Component::find($compoId);
+
+    //             if ($component) { // Check if component is not null
+    //                 $compo_category = json_decode($component->compo_category, true);
+    //                 $compo_category_collection = collect($compo_category)->pluck('id');
+
+    //                 foreach ($compo_category_collection as $categoryId) {
+    //                     $category = Category::find($categoryId);
+    //                     if ($category && !$categories->contains('id', $category->id)) {
+    //                         $categories->push($category);
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //         return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
+    //     }
+
+    //     // Optionally return a response if the machine is not found
+    //     return response()->json(['message' => __('Machine not found')], 404);
+    // }
+
+
+
+
+
     public function getCategoriesByMachine(Request $request)
     {
         $machine = Machine::find($request->machine_id);
         $categories = collect([]);
 
         if ($machine) {
-            $components = json_decode($machine->machine_component);
-            $componentIds = collect($components)->pluck('id');
+            $products = Product::where('machine_machine_model_id', $machine->id)->get();
+            $categoryIds = $products->pluck('category_name_id')->unique();
 
-            foreach ($componentIds as $compoId) {
-                $component = Component::find($compoId);
-
-                if ($component) { // Check if component is not null
-                    $compo_category = json_decode($component->compo_category, true);
-                    $compo_category_collection = collect($compo_category)->pluck('id');
-
-                    foreach ($compo_category_collection as $categoryId) {
-                        $category = Category::find($categoryId);
-                        if ($category && !$categories->contains('id', $category->id)) {
-                            $categories->push($category);
-                        }
-                    }
+            foreach ($categoryIds as $categoryId) {
+                $category = Category::find($categoryId);
+                if ($category && !$categories->contains('id', $category->id)) {
+                    $categories->push($category);
                 }
             }
 
             return $this->returnData('data', CategoryResource::collection($categories), __('Get successfully'));
         }
 
-        // Optionally return a response if the machine is not found
         return response()->json(['message' => __('Machine not found')], 404);
     }
 
