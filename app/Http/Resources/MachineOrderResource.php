@@ -69,7 +69,7 @@ class MachineOrderResource extends JsonResource
 
 
 
-                    if ($componentId == 19) {
+                    if ($componentId == 1) {
                                 $isExist = true;
                             } else {
                                 $compolists = Compolist::where('component_name_id', $componentId)->get();
@@ -175,7 +175,7 @@ class MachineOrderResource extends JsonResource
             foreach ($response as &$component) {
                 if ($component['isExist']) { // Calculate only if isExist is true
                 $component['voltageVolume'] = number_format($component['runningVoltage'], 3);
-                $component['timeVoltage'] = (integer)(($component['volume'] / $component['flowRate']) * 60000);
+                $component['timeVoltage'] = ($component['volume'] / $component['flowRate']) * 60000;
             }
         }
     }elseif ($main->software_type == "PWM") {

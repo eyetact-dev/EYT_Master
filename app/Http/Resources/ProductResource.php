@@ -60,7 +60,7 @@ foreach ($blend as $mcomponent) {
 
         if ($supply !== null) {
             // Check if component exists
-            if ($componentId == 19) {
+            if ($componentId == 1) {
                 $isExist = true;
             } else {
                 $compolists = Compolist::where('component_name_id', $componentId)->get();
