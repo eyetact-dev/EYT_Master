@@ -275,6 +275,15 @@ public function createMachineOrder(Request $request) {
             }, 0);
 
             $volume = $product->dose - $sumOtherVolumes;
+
+
+            if ($volume < 0) {
+
+            return $this->returnError('Sorry, you should change the value because the sum of values is greater than the dose');
+            }
+
+
+
         }
 
         $component['volume'] = $volume;

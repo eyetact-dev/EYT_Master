@@ -251,7 +251,12 @@ class MachineOrderResource extends JsonResource
 
 
 
+        $carrierDose = null;
 
+        // Check if the first component is water (id = 1)
+        if (!empty($response) && $response[0]['componentId'] == 1) {
+            $carrierDose = 'q.s.' . $this->dose . ' ml';
+        }
 
 
 
@@ -267,6 +272,7 @@ class MachineOrderResource extends JsonResource
             'dose' => $this->dose,
             'outlet' => $this->outlet,
             'max_delay' => (integer)$maxDelay, // Added max_delay key
+            'carrier_dose' => $carrierDose, // Added carrier_dose key
         ];
 
 
