@@ -260,7 +260,7 @@ class MachineOrderResource extends JsonResource
 
 
         $outletIndex = null;
-        $outletData = json_decode($machine->oulet, true);
+        $outletData = json_decode($machine->outlet, true);
 
         if (is_array($outletData)) {
             foreach ($outletData as $key => $value) {
