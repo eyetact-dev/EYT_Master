@@ -259,6 +259,17 @@ class MachineOrderResource extends JsonResource
         }
 
 
+        $outletIndex = null;
+        $outletData = json_decode($machine->oulet, true);
+
+        foreach ($outletData as $key => $value) {
+            if ($value['name'] === $this->outlet) {
+                $outletIndex = $key;
+                break;
+            }
+        }
+
+
 
 
         return [
@@ -271,6 +282,7 @@ class MachineOrderResource extends JsonResource
             'components' => $response,
             'dose' => $this->dose,
             'outlet' => $this->outlet,
+            'outlet_index' => $outletIndex, // Added outlet_index key
             'max_delay' => (integer)$maxDelay, // Added max_delay key
             'carrier_dose' => $carrierDose, // Added carrier_dose key
         ];
