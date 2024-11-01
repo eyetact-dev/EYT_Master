@@ -262,12 +262,15 @@ class MachineOrderResource extends JsonResource
         $outletIndex = null;
         $outletData = json_decode($machine->oulet, true);
 
-        foreach ($outletData as $key => $value) {
-            if ($value['name'] === $this->outlet) {
-                $outletIndex = $key;
-                break;
+        if (is_array($outletData)) {
+            foreach ($outletData as $key => $value) {
+                if ($value['name'] === $this->outlet) {
+                    $outletIndex = $key;
+                    break;
+                }
             }
         }
+
 
 
 
