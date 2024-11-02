@@ -17,11 +17,13 @@ class ComponentResource extends JsonResource
         return [
 
             'id' => $this->id,
-            'name' => $this->compo_name,
-            'categories'=>json_decode($this->compo_category, true),
-            'concentration' => $this->compo_concentration,
-            'description' => $this->description, // Include the description field
-
+            'name' => $this->name,
+            'combined_component' => $this->combined_component,
+            'element'=>json_decode($this->compo_element, true),
+            'form' => $this->form,
+            'category'=>json_decode($this->compo_category, true),
+            'carrier'=>$this->carrier,
+            'parent'=>$this->classification_parent?->parent,
 
         ];
     }

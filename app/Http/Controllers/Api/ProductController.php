@@ -296,4 +296,25 @@ public function createMachineOrder(Request $request) {
     return $this->returnData('data', new MachineOrderResource($machineOrder), __('Get successfully'));
 }
 
+
+
+public function getProducts(Request $request){
+
+    $machine = Machine::find($request->machine_id);
+
+
+    $products =  Product::where('machine_machine_model_id',$machine->id)->where('enable',1)->get();
+
+
+
+if ($products->isEmpty()) {
+    return $this->returnSuccessMessage([]);
+}
+
+    return $this->returnData('data', ProductResource::collection($products), __('Get successfully'));
+
+}
+
+
+
 }

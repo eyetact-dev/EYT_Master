@@ -50,6 +50,15 @@ Route::post('categories', [CategoryController::class, 'getCategoriesByMachine'])
 Route::post('products-by-category', [CategoryController::class, 'getProductsByCategory']);
 
 
+//getProducts
+Route::post('get-products', [ProductController::class, 'getProducts']);
+
+
+//getComponents
+Route::post('get-components', [ComponentController::class, 'getComponents']);
+
+
+
 Route::middleware(['auth:api'])->group(function () {
 
     Route::post('update-password', [AuthController::class, 'updatePassword']);

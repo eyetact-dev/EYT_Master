@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Resources\MyComponentsResource;
+use App\Models\Admin\Compolist;
 use App\Models\Admin\Component;
 use App\Models\Admin\ComponentsSet;
 use App\Models\Admin\Element;
+use App\Models\Admin\Machine;
+use App\Models\Admin\Machinecompo;
+use App\Models\Admin\MainPart;
 use App\Models\Admin\Software;
 use Illuminate\Http\Request;
 use App\Repositories\Repository;
@@ -494,6 +498,53 @@ class ComponentController extends ApiController
     return $this->returnSuccessMessage($componentData);
 
     }
+
+
+
+
+
+    public function getComponents(Request $request) {
+        $machine = Machine::find($request->machine_id);
+        $components = collect([]);
+
+        if ($machine) {
+            $compos = json_decode($machine->machine_component);
+            $componentIds = collect($compos)->pluck("id");
+
+            foreach ($componentIds as $componentId) {
+                $component = Component::find($componentId);
+
+                if ($component) {
+                    $compolists = Compolist::where('component_name_id', $componentId)->get();
+                    $isExist = false;
+
+                    foreach ($compolists as $compolist) {
+                        $machinecompo = Machinecompo::where('machine_serial_number_id', $machine->id)
+                            ->where('machine_compo_code', $compolist->compo_code)
+                            ->first();
+
+                        if ($machinecompo) {
+                            $isExist = true;
+                            break;
+                        }
+                    }
+
+                    $component->isExist = $isExist;
+
+                    if ($component->id == 1) {
+                        $component->isExist = true;
+                    }
+
+                    if ($component->isExist) {
+                        $components->push($component);
+                    }
+                }
+            }
+        }
+
+        return $this->returnData('data', ComponentResource::collection($components), __('Get successfully'));
+    }
+
 
 
 }
