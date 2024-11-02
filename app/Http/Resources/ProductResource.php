@@ -94,6 +94,12 @@ foreach ($blend as $mcomponent) {
                 return $this->returnError(__('Component not found!'));
             }
 
+
+
+                // Determine component data
+                $volumeUnit = $component->form == 'Liquid' ? 'ml' : ($component->form == 'Solid' ? 'gr' : '');
+
+
             // Determine component data
             if ($component->component_carrier == 1) {
                 $componentData = [
@@ -102,6 +108,7 @@ foreach ($blend as $mcomponent) {
                     'maximum' => '100',
                     'default' => '0',
                     'mainValue' => '100',
+                    'volume_unit' => $volumeUnit,
                 ];
             } else {
                 if ($component->combined_component == 1) {
@@ -111,6 +118,7 @@ foreach ($blend as $mcomponent) {
                         'maximum' => '50',
                         'default' => '0',
                         'mainValue' => '100',
+                        'volume_unit' => $volumeUnit,
                     ];
                 } else {
                     $compo_element = json_decode($component->compo_element, true);
@@ -127,6 +135,7 @@ foreach ($blend as $mcomponent) {
                             'maximum' => (string)($item['value'] * 0.5),
                             'default' => '0',
                             'mainValue' => $item['value'],
+                            'volume_unit' => $volumeUnit,
                         ];
                         break;
                     }
