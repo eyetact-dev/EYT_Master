@@ -103,11 +103,11 @@ foreach ($blend as $mcomponent) {
             // Determine component data
             if ($component->component_carrier == 1) {
                 $componentData = [
-                    'unit' => '%',
+                    'unit' => 'ml',
                     'minimum' => '0',
-                    'maximum' => '100',
+                    'maximum' => '1000',
                     'default' => '0',
-                    'mainValue' => '100',
+                    'mainValue' => '1000',
                     'volume_unit' => $volumeUnit,
                 ];
             } else {

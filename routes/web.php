@@ -1029,11 +1029,11 @@ Route::get('/get-minmax-unit/{component_id}', function ($component_id) {
 
 
             $componentData = [
-                'unit' => '%',
+                'unit' => 'ml',
                 'minimum' => '0',
-                'maximum' => '100',
+                'maximum' => '1000',
                 'default' => '0',
-                'mainValue' => '100' ,
+                'mainValue' => '1000' ,
 
             ];
 
