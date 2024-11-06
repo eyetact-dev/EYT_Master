@@ -68,9 +68,7 @@ class ComponentResource extends JsonResource
         // Fetch the component
         $component = Component::find($componentId);
 
-        if (!$component) {
-            return $this->returnError(__('Component not found!'));
-        }
+
 
 
 
