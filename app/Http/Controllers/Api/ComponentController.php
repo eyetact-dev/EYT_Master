@@ -511,8 +511,9 @@ class ComponentController extends ApiController
             $compos = json_decode($machine->machine_component);
             $componentIds = collect($compos)->pluck("id");
 
-            foreach ($componentIds as $componentId) {
-                $component = Component::find($componentId);
+            foreach ($compos as $index => $compo) {
+                $component = Component::find($compo->id);
+
 
                 if ($component) {
                     // $compolists = Compolist::where('component_name_id', $componentId)->get();
@@ -539,6 +540,7 @@ class ComponentController extends ApiController
                     //     $components->push($component);
                     // }
 
+                    $component->index = $index; // Add index to the component
 
                               $components->push($component);
                 }

@@ -25,25 +25,20 @@ class ComponentResource extends JsonResource
     $compoElement = json_decode($this->compo_element, true);
     $compoCategory = json_decode($this->compo_category, true);
 
-    $components = collect($compoElement);
-    $componentIds = $components->pluck("id");
+
 
     $response = [];
     $index = 1; // Initialize index
 
 
-    foreach ($components as $componentData) {
-        $componentId = $componentData['id'];
+
+        $componentId = $this->id;
         $componentIndex = null;
         $isExist = false; // Initialize isExist
 
-        // Find the component index
-        foreach ($components as $i => $component) { // Use $i to find the index
-            if ($component['id'] == $componentId) {
-                $componentIndex = $i;
-                break;
-            }
-        }
+
+
+
 
         // Check if component exists
         if ($componentId == 1) {
@@ -115,7 +110,7 @@ class ComponentResource extends JsonResource
 
         // Add component data to response
         $response[] = [
-            'index' => $componentIndex, // Add component index
+
             'componentId' => $componentId,
             'component' => $component->name, // Add component name
             'value' => $componentData['mainValue'], // Add main value
@@ -123,7 +118,7 @@ class ComponentResource extends JsonResource
             'componentData' => $componentData,
             'isExist' => $isExist,
         ];
-    }
+
 
     return [
         'id' => $this->id,
@@ -134,6 +129,7 @@ class ComponentResource extends JsonResource
         'category' => $compoCategory,
         'carrier' => $this->carrier,
         'parent' => $this->classification_parent?->parent,
+        'index' => $this->index, // Return the index
         'componentData' => $response, // Return the response array
 
     ];
