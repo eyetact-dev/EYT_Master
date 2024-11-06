@@ -129,6 +129,10 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
+    Route::post('machineorder-create', [ProductController::class, 'createProductAndMachineOrder']);
+
+
+
 });
 
 

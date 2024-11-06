@@ -317,4 +317,63 @@ if ($products->isEmpty()) {
 
 
 
+public function createProductAndMachineOrder(Request $request) {
+
+
+
+
+    $product= new Product();
+    $product->name = " ";
+    $product->machine_machine_model_id = $request->machine_id;
+    $product->blend = $request->blend;
+    $product->dose = $request->dose;
+    $product->save();
+
+
+    $machineOrder = new Machineorder();
+    $machineOrder->machine_machine_id_id = $request->machine_id;
+    $machineOrder->product_name_id = $product->id;
+
+    $product = Product::find($request->product_id);
+    $machineOrder->dose = $product->dose;
+
+    $machine = Machine::find($request->machine_id);
+    $main = MainPart::find($machine->main_part_main_code_id);
+
+    $blend = $request->blend;
+    $carrier = $main->carrier;
+
+    foreach ($blend as $key => &$component) {
+        $value = $component['value'];
+        $mainValue = $component['main_value'];
+        $volume = ($value / $mainValue) * 1000;
+
+        if ($carrier == 1 && $key == 1) {
+            $sumOtherVolumes = array_reduce(array_slice($blend, 1), function ($carry, $item) {
+                return $carry + ($item['value'] / $item['main_value']) * 1000;
+            }, 0);
+
+            $volume = $product->dose - $sumOtherVolumes;
+
+
+            if ($volume < 0) {
+
+            return $this->returnError('Sorry, you should change the value because the sum of values is greater than the dose');
+            }
+
+
+
+        }
+
+        $component['volume'] = $volume;
+    }
+
+    $machineOrder->blend = $blend;
+    $machineOrder->outlet = $request->outlet;
+    $machineOrder->save();
+
+    return $this->returnData('data', new MachineOrderResource($machineOrder), __('Get successfully'));
+}
+
+
 }
