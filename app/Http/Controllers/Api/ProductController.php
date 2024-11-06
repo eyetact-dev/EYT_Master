@@ -334,8 +334,8 @@ public function createProductAndMachineOrder(Request $request) {
     $machineOrder->machine_machine_id_id = $request->machine_id;
     $machineOrder->product_name_id = $product->id;
 
-    $product = Product::find($request->product_id);
-    $machineOrder->dose = $product->dose;
+    // $product = Product::find($request->product_id);
+    $machineOrder->dose = $request->dose;
 
     $machine = Machine::find($request->machine_id);
     $main = MainPart::find($machine->main_part_main_code_id);
