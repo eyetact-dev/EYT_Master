@@ -515,29 +515,32 @@ class ComponentController extends ApiController
                 $component = Component::find($componentId);
 
                 if ($component) {
-                    $compolists = Compolist::where('component_name_id', $componentId)->get();
-                    $isExist = false;
+                    // $compolists = Compolist::where('component_name_id', $componentId)->get();
+                    // $isExist = false;
 
-                    foreach ($compolists as $compolist) {
-                        $machinecompo = Machinecompo::where('machine_serial_number_id', $machine->id)
-                            ->where('machine_compo_code', $compolist->compo_code)
-                            ->first();
+                    // foreach ($compolists as $compolist) {
+                    //     $machinecompo = Machinecompo::where('machine_serial_number_id', $machine->id)
+                    //         ->where('machine_compo_code', $compolist->compo_code)
+                    //         ->first();
 
-                        if ($machinecompo) {
-                            $isExist = true;
-                            break;
-                        }
-                    }
+                    //     if ($machinecompo) {
+                    //         $isExist = true;
+                    //         break;
+                    //     }
+                    // }
 
-                    $component->isExist = $isExist;
+                    // $component->isExist = $isExist;
 
-                    if ($component->id == 1) {
-                        $component->isExist = true;
-                    }
+                    // if ($component->id == 1) {
+                    //     $component->isExist = true;
+                    // }
 
-                    if ($component->isExist) {
-                        $components->push($component);
-                    }
+                    // if ($component->isExist) {
+                    //     $components->push($component);
+                    // }
+
+
+                              $components->push($component);
                 }
             }
         }
