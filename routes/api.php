@@ -145,4 +145,4 @@ Route::get('product/{id}', [ProductController::class, 'view']);
 Route::get('get-minmax-unit/{id}', [ComponentController::class, 'getMinMaxUnit']);
 
 
-
+Route::get('check-component', [ComponentController::class, 'checkComponent']);

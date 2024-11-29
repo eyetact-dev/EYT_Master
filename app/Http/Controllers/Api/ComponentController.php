@@ -552,4 +552,95 @@ class ComponentController extends ApiController
 
 
 
+
+    public function checkComponent(Request $request)
+    {
+        $machine = Machine::find($request->machine_id);
+
+        if (!$machine) {
+            return $this->returnError(__('Machine not found.'));
+        }
+
+        $code = Compolist::where('compo_code', $request->code)->first();
+
+        if (!$code) {
+            return $this->returnError(__('This component is not recognized in the system.'));
+        }
+
+        $existingMachineCompo = Machinecompo::where('machine_compo_code', 'like', $request->code)->first();
+
+        if ($existingMachineCompo) {
+            // Check if the component is associated with another machine
+            if ($existingMachineCompo->machine_serial_number_id != $request->machine_id) {
+                return $this->returnError(__('This component is already in use in another machine.'));
+            }
+
+            // Check if the pin status is 1 for the same pin number in the current machine
+            if (
+                $existingMachineCompo->machine_serial_number_id == $request->machine_id &&
+                $existingMachineCompo->pin_number == $request->pin_number &&
+                $existingMachineCompo->pin_status == $request->pin_number && $request->pin_number == 1
+            ) {
+                return $this->returnError(__('Sorry, this pin is already defined and active for this machine.'));
+            }
+
+            // If pin status is 0, update the fields
+            if (
+                $existingMachineCompo->machine_serial_number_id == $request->machine_id &&
+                $existingMachineCompo->pin_number == $request->pin_number &&
+                $existingMachineCompo->pin_status == $request->pin_number && $request->pin_number == 0
+            ) {
+                $existingMachineCompo->update([
+                    'machine_compo_code' => null,
+                    'main_volume' => 0,
+                    'remaining_volume' => 0,
+                    'pin_status' => 0,
+                ]);
+            }
+        }
+
+        $component = Component::find($code->component_name_id);
+        $compos = json_decode($machine->machine_component);
+        $componentIds = collect($compos)->pluck("id");
+
+
+
+        // Fetch the machine component entry
+        $machineCompo = Machinecompo::where('machine_serial_number_id', $request->machine_id)
+            ->where('pin_number', $request->pin_number)
+            ->first();
+
+        if ($machineCompo) {
+            // If `pin_status` is 0, update fields
+            if ($request->pin_status == 0) {
+                $machineCompo->update([
+                    'machine_compo_code' => null,
+                    'main_volume' => null,
+                    'remaining_volume' => null,
+                    'pin_status' => 0 ,
+                ]);
+            }
+            else{
+
+
+                 // If no component found, create or update with the requested data
+                 $machineCompo->update(
+                [
+                    'machine_serial_number_id' => $request->machine_id,
+                    'pin_number' => $request->pin_number,
+                    'machine_compo_code' => $request->code,
+                    'pin_status' => 1,
+                     'main_volume' => $code->volume,
+                     'remaining_volume' => $code->volume,
+                ]
+            );
+
+            }
+
+        }
+
+        return $this->returnSuccess(__('Component processed successfully.'));
+    }
+
+
 }
