@@ -81,7 +81,7 @@ class ComponentResource extends JsonResource
                 $componentData = [
                     'unit' => '%',
                     'minimum' => '0',
-                    'maximum' => '50',
+                    'maximum' => (string)($component->percentage_value) ,
                     'default' => '0',
                     'mainValue' => '100',
 
@@ -98,7 +98,7 @@ class ComponentResource extends JsonResource
                     $componentData = [
                         'unit' => $item['unit'],
                         'minimum' => '0',
-                        'maximum' => (string)($item['value'] * 0.5),
+                        'maximum' => (string)($item['value'] * ($component->percentage_value / 100)),
                         'default' => '0',
                         'mainValue' => $item['value'],
 
